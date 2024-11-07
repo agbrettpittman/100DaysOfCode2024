@@ -22,8 +22,8 @@ export default function App() {
       <CssBaseline />
       <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
         <Toolbar>
-          <Typography variant="h6" noWrap component="div">
-            Clipped drawer
+          <Typography variant="h5" noWrap component="h1">
+            Mini LotA
           </Typography>
         </Toolbar>
       </AppBar>
