@@ -12,25 +12,30 @@ test('Tab Name is Correct', async ({ page }) => {
 
 test('Banner Looks Correct', async ({ page }) => {
     await page.goto(host);
-    /*
-    // Get the h1 element and check its text content
-    const h1 = page.locator("h1");
+    // screen width
+    const viewportSize = page.viewportSize();
+    if (!viewportSize) throw new Error("Viewport size is null");
 
-    // Verify it has the correct text
-    expect(h1).toHaveText("Mini LotA");
+    const appBar = page.locator("header");
+    const appBarStyle = await appBar.evaluate(el => {
+        const Styles = getComputedStyle(el)
+        return {
+            backgroundColor: Styles.backgroundColor,
+            width: Styles.width,
+        };
+    });
+    expect(appBarStyle.backgroundColor).toBe("rgb(164, 105, 46)");
+    expect(appBarStyle.width).toBe(`${viewportSize.width}px`);
 
-    console.log(h1);
-
-    // Verify it has a font size of 24 px and is white
-    expect(h1).toHaveCSS("font-size", "24px");
-    expect(h1).toHaveCSS("color", "rgb(255, 255, 255)");
-    */
-
-    const appBar = await page.locator("header");
-
-    // Verify it has the correct text
-    //expect(appBar).toHaveText("Mini LotA");
-    const bgColor = await appBar.evaluate(el => getComputedStyle(el).getPropertyValue('--AppBar-background'));
-    console.log(bgColor);
-    expect(appBar).toHaveCSS("background-color", "rgb(164, 105, 46)");
+    const appTitle = page.locator("header h1");
+    const appTitleStyle = await appTitle.evaluate(el => {
+        const Styles = getComputedStyle(el)
+        return {
+            color: Styles.color,
+            fontSize: Styles.fontSize,
+        };
+    });
+    expect(appTitleStyle.color).toBe("rgb(255, 255, 255)");
+    expect(appTitleStyle.fontSize).toBe("24px");
+    
 });
