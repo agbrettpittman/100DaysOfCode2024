@@ -37,5 +37,11 @@ test('Banner Looks Correct', async ({ page }) => {
     });
     expect(appTitleStyle.color).toBe("rgb(255, 255, 255)");
     expect(appTitleStyle.fontSize).toBe("24px");
+
+    const logo = page.locator("header img");
+    expect(await logo.evaluate(el => el.getAttribute("src"))).toBe("/LotA.png");
+    // expect logo to be visible
+    expect(await logo.isVisible()).toBe(true);
+
     
 });
