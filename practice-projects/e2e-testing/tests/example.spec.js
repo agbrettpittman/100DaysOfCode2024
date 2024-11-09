@@ -44,3 +44,41 @@ test('Banner Looks Correct', async ({ page }) => {
 
     
 });
+
+test('Clicking New Character Adds Characters', async ({ page }) => {
+    const iterations = 3
+    await page.goto(host);
+
+    const CharacterList = page.locator(".MuiDrawer-root .MuiList-root li")
+
+    
+    async function getCharacterLis(){
+        let currentCharacters = 0
+        let newCharacterButtonFound = false
+        const characterTexts = await CharacterList.allTextContents();
+        characterTexts.forEach(text => {
+            if (text === "New Character") {
+                newCharacterButtonFound = true
+            }
+            currentCharacters++
+        });
+        console.log(`Current characters: ${currentCharacters}`)
+
+        return {currentCharacters, newCharacterButtonFound}
+    }
+
+    let {currentCharacters, newCharacterButtonFound} = await getCharacterLis()
+    
+    expect(newCharacterButtonFound).toBe(true)
+
+    // Click the "New Character" button
+    const CharacterAddButton = page.locator(".MuiDrawer-root .MuiList-root li:has(svg[data-testid='AddIcon'])")
+
+    for (let i = 0; i <= iterations; i++) {
+        await CharacterAddButton.click()
+        let {currentCharacters: newCurrentCharacters} = await getCharacterLis()
+        expect(newCurrentCharacters).toBe(currentCharacters + i)
+    }
+
+
+});
