@@ -13,6 +13,7 @@ import styled from 'styled-components';
 import { db } from './utils/db';
 import { Divider, ListItemIcon } from '@mui/material';
 import { Add } from '@mui/icons-material';
+import { Outlet } from "react-router-dom";
 
 const drawerWidth = 240;
 
@@ -94,7 +95,7 @@ export default function App() {
             </Box>
         </Drawer>
         <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
-            <button onClick={deleteAllCharacters}>Delete All Characters</button>
+            <Outlet />
         </Box>
         </Box>
     );

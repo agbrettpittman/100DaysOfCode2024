@@ -6,6 +6,7 @@ export default defineConfig({
     plugins: [react()],
     resolve: {
         alias: {
+            '@': '/src',
             '@mui/styled-engine': '@mui/styled-engine-sc',
         },
     },

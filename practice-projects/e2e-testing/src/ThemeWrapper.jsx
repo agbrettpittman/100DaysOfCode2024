@@ -2,6 +2,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { darken, lighten } from "polished";
 import { createContext, useMemo, useState } from "react";
 import "@mui/material/styles/createPalette";
+import { Outlet } from 'react-router-dom';
 
 export const ColorModeContext = createContext({ toggleColorMode: () => {} });
 const primaryMain = '#a4692e'
@@ -68,7 +69,7 @@ export default function ThemeWrapper({children}) {
     return (
         <ColorModeContext.Provider value={colorMode}>
             <ThemeProvider theme={mode === 'light' ? LightTheme : DarkTheme}>
-                {children}
+                <Outlet />
             </ThemeProvider>
         </ColorModeContext.Provider>
     )
