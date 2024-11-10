@@ -1,5 +1,6 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
+import { clickAddCharacterButton } from '../testUtils';
 
 const host = "http://localhost:5173/";
 
@@ -89,13 +90,12 @@ test('Clicking New Character Adds Characters', async ({ page }) => {
 
     // Function to get the current number of characters and whether the "New Character" button is present
     async function getDrawerItems(charactersExpected = 0){
-        const DrawerItemsLocator = page.locator(".MuiDrawer-root .MuiList-root li")
+        const DrawerItemsLocator = page.locator(".MuiDrawer-root .MuiList-root a")
         let characterCount = 0
-        let newCharacterButtonFound = false
 
         // If we expect characters, wait for the first character to appear
         if (charactersExpected) {
-            await DrawerItemsLocator.nth(1).waitFor({ state: 'attached' });
+            await DrawerItemsLocator.first().waitFor({ state: 'attached' });
         }
 
         // Get the text of all the characters
@@ -103,25 +103,21 @@ test('Clicking New Character Adds Characters', async ({ page }) => {
 
         // Check if the "New Character" button is present
         characterTexts.forEach(text => {
-            if (text === "New Character") newCharacterButtonFound = true
-            else characterCount++
+            characterCount++
         });
 
         // run assertions
-        expect(newCharacterButtonFound).toBe(true)
         if (charactersExpected) expect(characterCount).toBe(charactersExpected)
 
-        return {characterCount, newCharacterButtonFound}
+        return characterCount
     }
 
     // Run initial check
-    const { characterCount: InitialCharCount } = await getDrawerItems()
-    
-    const CharacterAddButton = page.locator(".MuiDrawer-root .MuiList-root li:has(svg[data-testid='AddIcon'])")
+    const InitialCharCount = await getDrawerItems()
 
     // Click the "New Character" button multiple times and check the number of characters
     for (let i = 1; i <= iterations; i++) {
-        await CharacterAddButton.click()
+        await clickAddCharacterButton(page)
         const NewCount = InitialCharCount + i
         await getDrawerItems(NewCount)
     }

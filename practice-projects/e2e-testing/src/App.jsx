@@ -13,7 +13,7 @@ import styled from 'styled-components';
 import { db } from './utils/db';
 import { Divider, ListItemIcon } from '@mui/material';
 import { Add } from '@mui/icons-material';
-import { Outlet } from "react-router-dom";
+import { Outlet, Link } from "react-router-dom";
 
 const drawerWidth = 240;
 
@@ -84,11 +84,11 @@ export default function App() {
                 </ListItem>
                 <Divider />
                 {Characters.map((character) => (
-                <ListItem key={character.id} disablePadding>
-                    <ListItemButton>
-                        <ListItemText primary={character.name} />
-                    </ListItemButton>
-                </ListItem>
+                    <ListItem key={character.id} disablePadding button component={Link} to={`/characters/${character.id}`} sx={{ color: 'inherit' }}>
+                        <ListItemButton>
+                            <ListItemText primary={character.name} />
+                        </ListItemButton>
+                    </ListItem>
                 ))}
                 
             </List>
