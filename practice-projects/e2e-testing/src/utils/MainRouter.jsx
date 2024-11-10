@@ -1,7 +1,8 @@
 import {
     createBrowserRouter,
     createRoutesFromElements,
-    Route
+    Route,
+    Navigate
 } from "react-router-dom";
 import ThemeWrapper from '@/ThemeWrapper'
 import App from '@/App.jsx'
@@ -16,7 +17,10 @@ const MainRouter = createBrowserRouter(createRoutesFromElements(
             <Route element={<App />} errorElement={<ErrorPage />} >
                 <Route errorElement={<ErrorPage />} >
                     <Route index={true} element={<Root />} />
-                    <Route path="Characters" element={<CharacterPage />} />
+                    <Route path="characters">
+                        <Route index={true} element={<Navigate to="/" />} />
+                        <Route path=":id" element={<CharacterPage />} />
+                    </Route>
                     <Route path="*" element={<NotFound />} />
                 </Route>
             </Route>
