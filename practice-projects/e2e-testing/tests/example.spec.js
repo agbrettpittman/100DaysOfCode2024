@@ -123,3 +123,28 @@ test('Clicking New Character Adds Characters', async ({ page }) => {
     }
 
 });
+
+test('Clicking on Character in Drawer Redirects to Character Page', async ({ page }) => {
+    await page.goto(host);
+    // check if there are any characters
+    const DrawerItemsLocator = page.locator(".MuiDrawer-root .MuiList-root a")
+    const characterCount = await DrawerItemsLocator.count()
+    if (characterCount === 0) {
+        await clickAddCharacterButton(page)
+    }
+    // get the href of the first character
+    const FirstCharacter = DrawerItemsLocator.first()
+    let firstCharacterHref = await FirstCharacter.getAttribute("href")
+    if (!firstCharacterHref) throw new Error("First character href is null")
+    // remove the first / if it exists
+    if (firstCharacterHref.startsWith("/")) {
+        firstCharacterHref = firstCharacterHref.slice(1)
+    }
+    // click the first character
+    await FirstCharacter.click()
+
+    const NewURL = host + firstCharacterHref
+
+    await page.waitForURL(NewURL);
+    expect(page.url()).toBe(NewURL);
+})
