@@ -57,6 +57,25 @@ test("Landing Page Has Correct Text", async ({ page }) => {
     );
 });
 
+test("Page Not Found Works", async ({ page }) => {
+    await page.goto(host + "does-not-exist");
+    const NotFoundTitle = page.locator("main h2");
+    expect(await NotFoundTitle.textContent()).toBe("404");
+
+    const NotFoundSubtitle = page.locator("main h3");
+    expect(await NotFoundSubtitle.textContent()).toBe("Page Not Found");
+
+    const NotFoundText = page.locator("main p");
+    expect(await NotFoundText.textContent()).toBe("The page you are looking for does not exist.");
+
+    const NotFoundButton = page.locator("main button");
+    expect(await NotFoundButton.textContent()).toBe("Go to Home");
+
+    await NotFoundButton.click();
+    await page.waitForURL(host);
+    expect(page.url()).toBe(host);
+})
+
 test('Clicking New Character Adds Characters', async ({ page }) => {
     
     await page.goto(host);
