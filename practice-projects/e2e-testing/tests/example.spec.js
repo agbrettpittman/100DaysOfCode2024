@@ -45,6 +45,18 @@ test('Banner Looks Correct', async ({ page }) => {
     
 });
 
+test("Landing Page Has Correct Text", async ({ page }) => {
+    await page.goto(host);
+
+    const LandingTitle = page.locator("main h2");
+    expect(await LandingTitle.textContent()).toBe("Lair of the Ancients");
+
+    const LandingSubtitle = page.locator("main h3");
+    expect(await LandingSubtitle.textContent()).toBe(
+        'Welcome! You can find your characters on the sidebar or add a new one with the "New Character" button.'
+    );
+});
+
 test('Clicking New Character Adds Characters', async ({ page }) => {
     
     await page.goto(host);
