@@ -7,6 +7,7 @@ export default defineConfig({
     resolve: {
         alias: {
             '@': '/src',
+            '@pages': '/src/pages',
             '@mui/styled-engine': '@mui/styled-engine-sc',
         },
     },
