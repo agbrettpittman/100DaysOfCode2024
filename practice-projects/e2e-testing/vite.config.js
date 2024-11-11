@@ -8,6 +8,7 @@ export default defineConfig({
         alias: {
             '@': '/src',
             '@pages': '/src/pages',
+            '@utils': '/src/utils',
             '@mui/styled-engine': '@mui/styled-engine-sc',
         },
     },
