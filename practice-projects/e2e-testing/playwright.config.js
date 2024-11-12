@@ -33,6 +33,8 @@ export default defineConfig({
     video: 'retain-on-failure',  // Saves video of failed tests
 
     viewport: { width: 1920, height: 1080 },
+
+      cursor: true
   },
 
   /* Configure projects for major browsers */

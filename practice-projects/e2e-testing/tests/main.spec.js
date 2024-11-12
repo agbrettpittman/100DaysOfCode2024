@@ -165,5 +165,4 @@ test('Character Page Looks Correct', async ({ page }) => {
     const creationDate = await characterCreationDate.textContent()
     const date = moment(creationDate, "MMMM Do YYYY, h:mm:ss a", true)
     expect(date.isValid()).toBe(true);
-    throw new Error("Test not implemented");
 })
