@@ -149,3 +149,21 @@ test('Clicking on Character in Drawer Redirects to Character Page', async ({ pag
     await page.waitForURL(NewURL);
     expect(page.url()).toBe(NewURL);
 })
+
+test('Character Page Looks Correct', async ({ page }) => {
+    await page.goto(host);
+    await addCharacterAndNavigate(page);
+    const characterName = page.locator("main h1");
+    // verify the character name is not empty and is visible
+    expect(await characterName.textContent()).toBeTruthy();
+    expect(await characterName.isVisible()).toBe(true);
+
+    const characterCreationDate = page.locator("main p.creationDate");
+    // verify the character creation date is not empty, is visible, and is in the correct format
+    expect(await characterCreationDate.textContent()).toBeTruthy();
+    expect(await characterCreationDate.isVisible()).toBe(true);
+    const creationDate = await characterCreationDate.textContent()
+    const date = moment(creationDate, "MMMM Do YYYY, h:mm:ss a", true)
+    expect(date.isValid()).toBe(true);
+    throw new Error("Test not implemented");
+})

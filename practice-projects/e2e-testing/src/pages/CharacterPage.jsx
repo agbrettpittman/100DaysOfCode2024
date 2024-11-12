@@ -1,7 +1,29 @@
-import React from 'react'
+import {useEffect, useState} from 'react'
+import { useParams } from 'react-router-dom'
+import { db } from '@utils/db'
+import moment from 'moment'
 
 export default function CharacterPage() {
-  return (
-    <div>CharacterPage</div>
-  )
+    const { id } = useParams()
+
+    const [Character, setCharacter] = useState({})
+
+    useEffect(() => {
+        getCharacter()
+    }, [])
+
+    async function getCharacter() {
+        const foundCharacter = await db.characters.get(Number(id))
+        setCharacter({
+            ...foundCharacter,
+            creationDate: moment(foundCharacter.creationDate).format('MMMM Do YYYY, h:mm:ss a')
+        })
+    }
+
+    return (
+        <div>
+            <h1>{Character.name}</h1>
+            <p class="creationDate">{Character.creationDate}</p>
+        </div>
+    )
 }
