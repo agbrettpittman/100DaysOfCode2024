@@ -1,6 +1,7 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
-import { clickAddCharacterButton } from '../testUtils';
+import { addCharacterAndNavigate, clickAddCharacterButton, DrawerLocator } from '../testUtils';
+import moment from 'moment';
 
 const host = "http://localhost:5173/";
 
@@ -89,8 +90,8 @@ test('Clicking New Character Adds Characters', async ({ page }) => {
     const iterations = 3
 
     // Function to get the current number of characters and whether the "New Character" button is present
-    async function getDrawerItems(charactersExpected = 0){
-        const DrawerItemsLocator = page.locator(".MuiDrawer-root .MuiList-root a")
+    async function getDrawerItemCount(charactersExpected = 0){
+        const DrawerItemsLocator = page.locator(`${DrawerLocator} a`)
         let characterCount = 0
 
         // If we expect characters, wait for the first character to appear
@@ -113,13 +114,13 @@ test('Clicking New Character Adds Characters', async ({ page }) => {
     }
 
     // Run initial check
-    const InitialCharCount = await getDrawerItems()
+    const InitialCharCount = await getDrawerItemCount()
 
     // Click the "New Character" button multiple times and check the number of characters
     for (let i = 1; i <= iterations; i++) {
         await clickAddCharacterButton(page)
         const NewCount = InitialCharCount + i
-        await getDrawerItems(NewCount)
+        await getDrawerItemCount(NewCount)
     }
 
 });
@@ -127,7 +128,7 @@ test('Clicking New Character Adds Characters', async ({ page }) => {
 test('Clicking on Character in Drawer Redirects to Character Page', async ({ page }) => {
     await page.goto(host);
     // check if there are any characters
-    const DrawerItemsLocator = page.locator(".MuiDrawer-root .MuiList-root a")
+    const DrawerItemsLocator = page.locator(`${DrawerLocator} a`)
     const characterCount = await DrawerItemsLocator.count()
     if (characterCount === 0) {
         await clickAddCharacterButton(page)
