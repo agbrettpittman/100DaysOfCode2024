@@ -10,7 +10,7 @@ export default function CharacterPage() {
 
     useEffect(() => {
         getCharacter()
-    }, [])
+    }, [id])
 
     async function getCharacter() {
         const foundCharacter = await db.characters.get(Number(id))

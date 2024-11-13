@@ -1,9 +1,9 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
-import { addCharacterAndNavigate, clickAddCharacterButton, DrawerLocator } from '../testUtils';
+import { host, addCharacterAndNavigate, clickAddCharacterButton, DrawerLocator } from '../testUtils';
 import moment from 'moment';
 
-const host = "http://localhost:5173/";
+
 
 test('Tab Name is Correct', async ({ page }) => {
   await page.goto(host);
@@ -157,6 +157,27 @@ test('Clicking on Character in Drawer Redirects to Character Page', async ({ pag
     await page.waitForURL(NewURL);
     expect(page.url()).toBe(NewURL);
 })
+
+test('Switching Between Characters Changes Information', async ({ page }) => {
+    await page.goto(host);
+    // add a new character, go to the character page, and get the character name and creation date
+    await addCharacterAndNavigate(page)
+    const character1NameLocator = page.locator("main h1");
+    const character1CreationDateLocator = page.locator("main p.creationDate");
+    const character1Name = await character1NameLocator.textContent()
+    const character1CreationDateText = await character1CreationDateLocator.textContent()
+    // wait a couple seconds
+    await page.waitForTimeout(2000)
+    // add a new character
+    await addCharacterAndNavigate(page)
+    // get the new character name and creation date
+    const character2Name = await character1NameLocator.textContent()
+    const character2CreationDateText = await character1CreationDateLocator.textContent()
+    // verify the character name and creation date have changed
+    expect(character1Name).not.toBe(character2Name)
+    expect(character1CreationDateText).not.toBe(character2CreationDateText)
+})
+
 
 test('Character Page Looks Correct', async ({ page }) => {
     await page.goto(host);

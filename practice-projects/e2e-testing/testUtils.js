@@ -1,3 +1,5 @@
+export const host = "http://localhost:5173/";
+
 export const DrawerLocator = ".MuiDrawer-root .MuiList-root"
 
 export async function clickAddCharacterButton(page){
@@ -38,7 +40,14 @@ export async function addCharacterAndNavigate(page){
     // get the href list of the characters
     const NewCharacterHrefs = await getDrawerHrefList(NewDrawerList)
     // find the new character href
-    const NewCharacterHref = NewCharacterHrefs.find(href => !InitialCharacterHrefs.includes(href))
+    let newCharacterHref = NewCharacterHrefs.find(href => !InitialCharacterHrefs.includes(href))
     // click the new character
-    await page.click(`${DrawerLocator} a[href="${NewCharacterHref}"]`)
+    await page.click(`${DrawerLocator} a[href="${newCharacterHref}"]`)
+
+    // remove the first / if it exists
+    if (newCharacterHref.startsWith("/")) {
+        newCharacterHref = newCharacterHref.slice(1)
+    }
+
+    await page.waitForURL(host + newCharacterHref)
 }
