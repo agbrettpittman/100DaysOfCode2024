@@ -78,6 +78,14 @@ test("Page Not Found Works", async ({ page }) => {
     expect(page.url()).toBe(host);
 })
 
+test("Clicking Logo Redirects To Home", async ({ page }) => {
+    await page.goto(host + "does-not-exist");
+    const Logo = page.locator("header a");
+    await Logo.click();
+    await page.waitForURL(host);
+    expect(page.url()).toBe(host);
+})
+
 test("Characters Root Redirects To Home", async ({ page }) => {
     await page.goto(host + "characters");
     await page.waitForURL(host);
