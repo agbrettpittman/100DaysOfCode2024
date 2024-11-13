@@ -41,7 +41,9 @@ export default function App() {
     }, [])
 
     async function getCharacters() {
+        // get characters from DB in reverse order
         const foundCharacters = await db.characters.toArray()
+        foundCharacters.reverse()
         setCharacters(foundCharacters)
     }
 

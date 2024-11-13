@@ -100,7 +100,6 @@ test('Clicking New Character Adds Characters', async ({ page }) => {
     // Function to get the current number of characters and whether the "New Character" button is present
     async function getDrawerItemCount(charactersExpected = 0){
         const DrawerItemsLocator = page.locator(`${DrawerLocator} a`)
-        let characterCount = 0
 
         // If we expect characters, wait for the first character to appear
         if (charactersExpected) {
@@ -110,25 +109,26 @@ test('Clicking New Character Adds Characters', async ({ page }) => {
         // Get the text of all the characters
         const characterTexts = await DrawerItemsLocator.allTextContents();
 
-        // Check if the "New Character" button is present
-        characterTexts.forEach(text => {
-            characterCount++
-        });
-
         // run assertions
-        if (charactersExpected) expect(characterCount).toBe(charactersExpected)
+        if (charactersExpected) {
+            expect(characterTexts.length).toBe(charactersExpected)
+        }
 
-        return characterCount
+        return characterTexts
     }
 
     // Run initial check
-    const InitialCharCount = await getDrawerItemCount()
+    const InitialChracters = await getDrawerItemCount()
+    let lastCharacterList = InitialChracters
 
     // Click the "New Character" button multiple times and check the number of characters
     for (let i = 1; i <= iterations; i++) {
         await clickAddCharacterButton(page)
-        const NewCount = InitialCharCount + i
-        await getDrawerItemCount(NewCount)
+        const NewCount = InitialChracters.length + i
+        let newChracterList = await getDrawerItemCount(NewCount)
+        // check if the first character in the new list exists in the last list
+        const firstCharacter = newChracterList[0]
+        expect(lastCharacterList).not.toContain(firstCharacter)
     }
 
 });
