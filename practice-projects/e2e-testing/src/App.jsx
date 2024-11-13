@@ -14,6 +14,7 @@ import { db } from './utils/db';
 import { Divider, ListItemIcon } from '@mui/material';
 import { Add } from '@mui/icons-material';
 import { Outlet, Link } from "react-router-dom";
+import { useLiveQuery } from 'dexie-react-hooks';
 
 const drawerWidth = 240;
 
@@ -34,18 +35,9 @@ const Logo = styled.img`
 
 export default function App() {
 
-    const [Characters, setCharacters] = useState([])
-
-    useEffect(() => {
-        getCharacters()
-    }, [])
-
-    async function getCharacters() {
-        // get characters from DB in reverse order
-        const foundCharacters = await db.characters.toArray()
-        foundCharacters.reverse()
-        setCharacters(foundCharacters)
-    }
+    const Characters = useLiveQuery(() => 
+        db.characters.toArray().then((characters) => characters.reverse())
+    , []) || []
 
     async function createCharacter() {
         // get current character count and add 1
@@ -55,7 +47,6 @@ export default function App() {
             creationDate: new Date()
         }
         await db.characters.add(newCharacter)
-        getCharacters()
     }
 
     return (
