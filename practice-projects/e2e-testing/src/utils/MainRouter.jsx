@@ -9,6 +9,7 @@ import App from '@/App.jsx'
 import ErrorPage from '@pages/ErrorPage'
 import Root from "@pages/RootPage";
 import CharacterPage from "@pages/CharacterPage";
+import CharacterEditPage from "@pages/CharacterEditPage";
 import NotFound from "@pages/NotFound";
 
 const MainRouter = createBrowserRouter(createRoutesFromElements(
@@ -19,7 +20,10 @@ const MainRouter = createBrowserRouter(createRoutesFromElements(
                     <Route index={true} element={<Root />} />
                     <Route path="characters">
                         <Route index={true} element={<Navigate to="/" />} />
-                        <Route path=":id" element={<CharacterPage />} />
+                        <Route path=":id">
+                            <Route index={true} element={<CharacterPage />} />
+                            <Route path="edit" element={<CharacterEditPage />} />
+                        </Route>
                     </Route>
                     <Route path="*" element={<NotFound />} />
                 </Route>

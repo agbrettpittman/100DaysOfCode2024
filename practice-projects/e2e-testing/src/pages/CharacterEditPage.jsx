@@ -1,20 +1,22 @@
 import { useParams } from "react-router-dom"
-import { db } from '@utils/db'
-import { useLiveQuery } from "dexie-react-hooks";
+import useCharacter from "@utils/hooks/useCharacter";
+import TextField from '@mui/material/TextField';
 
 export default function CharacterEditPage({}){
     
     const { id } = useParams()
 
-    async function getCharacter(){
-        const foundCharacter = await db.characters.get(Number(id))
-        console.log(foundCharacter)
-    }
+    const [Character, setCharacter] = useCharacter(id)
 
     return (
         <div>
-            <h1>Edit Character</h1>
-            <button onClick={getCharacter}>Get Character</button>
+            <TextField
+                label="Character Name"
+                value={Character.name || ''}
+                onChange={(e) => setCharacter({ ...Character, name: e.target.value })}
+                variant="outlined"
+                fullWidth
+            />
         </div>
     )
 
