@@ -195,3 +195,15 @@ test('Character Page Looks Correct', async ({ page }) => {
     const date = moment(creationDate, "MMMM Do YYYY, h:mm:ss a", true)
     expect(date.isValid()).toBe(true);
 })
+
+test('Edit Button Goes to Edit Page', async ({ page }) => {
+    await page.goto(host);
+    await addCharacterAndNavigate(page);
+    // get the current url
+    const CurrentURL = page.url();
+    const ExpectedEditURL = `${CurrentURL}/edit`
+    const EditButton = page.locator(`main header a[href$="/edit"]`);
+    await EditButton.click();
+    await page.waitForURL(ExpectedEditURL)
+    expect(page.url()).toBe(ExpectedEditURL);
+})
