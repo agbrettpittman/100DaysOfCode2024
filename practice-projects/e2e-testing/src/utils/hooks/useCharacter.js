@@ -3,16 +3,16 @@ import { db } from '@utils/db'
 
 export default function useCharacter(id){
     
-    const [Character, setCharacter] = useState({})
+    const [Character, updateState] = useState({})
 
     useEffect(() => {
         db.characters.get(Number(id)).then((result) => {
-            setCharacter(result)
+            updateState(result)
         })
     }, [id])
 
-    function updateState(key, value){
-        setCharacter((prev) => {
+    function setCharacter(key, value){
+        updateState((prev) => {
             return {
                 ...prev,
                 [key]: value
@@ -21,6 +21,6 @@ export default function useCharacter(id){
         db.characters.update(Number(id), {[key]: value})
     }
 
-    return {Character, updateState}
+    return { Character, setCharacter }
 
 }
