@@ -1,6 +1,6 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
-import { host, addCharacterAndNavigate, clickAddCharacterButton, DrawerLocator } from '../testUtils';
+import { host, addCharacterAndNavigate, clickAddCharacterButton, DrawerLocator, getDrawerItems } from '../testUtils';
 import moment from 'moment';
 
 
@@ -206,4 +206,51 @@ test('Edit Button Goes to Edit Page', async ({ page }) => {
     await EditButton.click();
     await page.waitForURL(ExpectedEditURL)
     expect(page.url()).toBe(ExpectedEditURL);
+})
+
+test('Edit Page Inputs Work', async ({ page }) => {
+    await page.goto(host);
+    await addCharacterAndNavigate(page);
+    // get the current values
+    const characterNameLocator = page.locator("main h1");
+    const CharacterName = await characterNameLocator.textContent()
+    if (!CharacterName) throw new Error("Character name is null")
+    const InitialDrawerItems = await getDrawerItems(page)
+    let InitialDrawerCharacterNames = []
+    for (let i = 0; i < InitialDrawerItems.length; i++) {
+        InitialDrawerCharacterNames.push(await InitialDrawerItems[i].textContent())
+    }
+
+    // go to the edit page
+    const CurrentURL = page.url();
+    const EditURL = `${CurrentURL}/edit`
+    await page.goto(EditURL);
+
+    //------------------------------------- Name Input ------------------------------------
+    const NameInput = page.locator(`input[name="name"]`);
+    await expect(NameInput).toHaveValue(CharacterName)
+    const InputFilledName = "New Name"
+    await NameInput.fill(InputFilledName)
+
+    // verify the drawer has not changed
+    const NewDrawerItems = await getDrawerItems(page)
+    let NewDrawerCharacterNames = []
+    for (let i = 0; i < NewDrawerItems.length; i++) {
+        NewDrawerCharacterNames.push(await NewDrawerItems[i].textContent())
+    }
+
+    InitialDrawerCharacterNames.forEach((name, index) => {
+        // verify the right name has changed
+        if (name === CharacterName) {
+            expect(NewDrawerCharacterNames[index]).toBe(InputFilledName)
+        } else {
+            expect(NewDrawerCharacterNames[index]).toBe(name)
+        }
+    })
+
+    //##################### Navigate Back to Character Page ##############################
+    await page.goto(CurrentURL);
+    await page.waitForURL(CurrentURL)
+    const NewCharacterName = await characterNameLocator.textContent()
+    expect(NewCharacterName).toBe(InputFilledName)
 })
