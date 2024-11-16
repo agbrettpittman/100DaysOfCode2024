@@ -21,6 +21,6 @@ export default function useCharacter(id){
         db.characters.update(Number(id), {[key]: value})
     }
 
-    return [Character, updateState]
+    return {Character, updateState}
 
 }

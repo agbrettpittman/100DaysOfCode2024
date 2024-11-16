@@ -7,16 +7,19 @@ import { Typography, Box, IconButton } from '@mui/material'
 export default function CharacterPage() {
     const { id } = useParams()
 
-    const [Character, setCharacter] = useCharacter(id)
+    const {Character} = useCharacter(id)
     const DisplayCreation = moment(Character.creationDate).format('MMMM Do YYYY, h:mm:ss a')
 
     return (
         <div>
-            <Box display={'flex'} flexDirection={'row'} gap={'1rem'} gridArea={'characterTitle'} alignItems={'center'} sx={{ mb: 2}}>
-                <Typography component="h1" variant="h4" fontStyle={(Character.name) ? "normal" : "italic"}>
+            <Box 
+                display={'flex'} flexDirection={'row'} gap={'1rem'} alignItems={'center'} sx={{ mb: 2}}
+                component={'header'}
+            >
+                <Typography component="h1" variant="h4">
                     {Character.name}
                 </Typography>
-                <IconButton aria-label="edit" color="primary" href={`/characters/${id}/edit`}>
+                <IconButton color="primary" href={`${id}/edit`}>
                     <Edit/>
                 </IconButton>
             </Box>

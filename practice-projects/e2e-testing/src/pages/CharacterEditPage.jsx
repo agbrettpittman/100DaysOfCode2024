@@ -6,17 +6,18 @@ export default function CharacterEditPage({}){
     
     const { id } = useParams()
 
-    const [Character, setCharacter] = useCharacter(id)
+    const {Character, setCharacter} = useCharacter(id)
 
     return (
         <div>
             <TextField
                 label="Character Name"
                 value={Character.name || ''}
-                onChange={(e) => setCharacter({ ...Character, name: e.target.value })}
+                onChange={(e) => setCharacter("name", e.target.value)}
                 variant="outlined"
                 fullWidth
             />
+
         </div>
     )
 
