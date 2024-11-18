@@ -44,7 +44,7 @@ const StyledIconButton = styled(IconButton)`
  *
  * @returns {JSX.Element} The rendered HoldIconButton component.
  */
-function HoldIconButton({color = "", hoverColor = "", onComplete = () => {}, speed = 10, children}) {
+function HoldIconButton({color = "", hoverColor = "", onComplete = () => {}, speed = 10, children, ...otherProps}) {
     const [ConfirmationPercentage, setConfirmationPercentage] = useState(0)
     const [ButtonClicked, setButtonClicked] = useState(false)
     const ConfirmationInterval = useRef(null)
@@ -96,6 +96,7 @@ function HoldIconButton({color = "", hoverColor = "", onComplete = () => {}, spe
             onMouseDown={() => setButtonClicked(true)}
             onMouseUp={() => setButtonClicked(false)}
             confirmationColor={ActiveColor}
+            {...otherProps}
         >
             {children}
         </StyledIconButton>
