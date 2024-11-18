@@ -20,10 +20,10 @@ export default function AppNav() {
     , []) || []
 
     async function createCharacter() {
-        // get current character count and add 1
-        const count = await db.characters.count()
+        // get the count of all characters that match a regex with the name "New Character" and a number
+        const count = Characters.filter((character) => character.name.match(/^New Character \d+$/)).length
         const newCharacter = {
-            name: `Test Character ${count + 1}`,
+            name: `New Character ${count + 1}`,
             creationDate: new Date()
         }
         await db.characters.add(newCharacter)
