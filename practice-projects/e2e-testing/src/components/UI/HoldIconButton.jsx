@@ -1,6 +1,7 @@
 import React from 'react'
 import { IconButton } from '@mui/material'
 import { useEffect, useRef, useState } from 'react'
+import styled from 'styled-components'
 
 const StyledIconButton = styled(IconButton)`
     position: relative;
@@ -35,7 +36,7 @@ function HoldIconButton({color = "", hoverColor = "", onComplete = () => {}, chi
     const ConfirmationInterval = useRef(null)
 
     useEffect(() => {
-        // if the delete icon is clicked, gradually increase the border coverage
+        // if the button is clicked, gradually increase the border coverage
         // to create a circular border growing effect
         ConfirmationInterval.current = null
         if (ButtonClicked){
@@ -51,8 +52,8 @@ function HoldIconButton({color = "", hoverColor = "", onComplete = () => {}, chi
                 })
             }, 10)
         } else {
-            // if DeletionPercentage is not 0, gradually decrease it
-            if (DeletionPercentage > 0){
+            // if ConfirmationPercentage is not 0, gradually decrease it
+            if (ConfirmationPercentage > 0){
                 ConfirmationInterval.current = setInterval(() => {
                     setConfirmationPercentage((prev) => {
                         if (prev <= 0){
