@@ -259,7 +259,7 @@ test('Edit Page Inputs Work', async ({ page }) => {
 test('Delete Button Works', async ({ page }) => {
     await page.goto(host);
     await addCharacterAndNavigate(page);
-    // get the current values
+    // get the current drawer values
     const characterNameLocator = page.locator("main h1");
     const CharacterName = await characterNameLocator.textContent()
     if (!CharacterName) throw new Error("Character name is null")
@@ -278,7 +278,7 @@ test('Delete Button Works', async ({ page }) => {
 
     // wait to be navigated back to the home page
     await page.waitForURL(host);
-    // verify the character is deleted
+    // verify the character is deleted in the drawer
     const NewDrawerItems = await getDrawerItems(page)
     let NewDrawerCharacterNames = []
     for (let i = 0; i < NewDrawerItems.length; i++) {
