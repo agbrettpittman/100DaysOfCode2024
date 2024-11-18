@@ -251,6 +251,7 @@ test('Edit Page Inputs Work', async ({ page }) => {
     //##################### Navigate Back to Character Page ##############################
     await page.goto(CurrentURL);
     await page.waitForURL(CurrentURL)
+    await characterNameLocator.waitFor({ state: 'attached' });
     const NewCharacterName = await characterNameLocator.textContent()
     expect(NewCharacterName).toBe(InputFilledName)
 })
