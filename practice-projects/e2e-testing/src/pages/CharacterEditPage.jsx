@@ -50,7 +50,7 @@ export default function CharacterEditPage({}){
                     <MyNumberInput
                         label="Height (feet)"
                         value={Character.heightFeet || 0}
-                        name="height"
+                        name="heightFeet"
                         onChange={updateCharacter}
                         variant="outlined"
                         sx={{ width: '6rem' }}
