@@ -1,3 +1,4 @@
+
 import React from 'react'
 import { IconButton } from '@mui/material'
 import { useEffect, useRef, useState } from 'react'
@@ -20,7 +21,7 @@ const StyledIconButton = styled(IconButton)`
         
         /* Conic gradient for dynamic border coverage */
         background: conic-gradient(
-            ${({ theme }) => theme.palette.error.main} ${({ coverage }) => coverage}%,
+            ${({ confirmationColor }) => confirmationColor} ${({ coverage }) => coverage}%,
             transparent 0
         );
 
@@ -30,10 +31,24 @@ const StyledIconButton = styled(IconButton)`
     }
 `
 
-function HoldIconButton({color = "", hoverColor = "", onComplete = () => {}, children}) {
+/**
+ * HoldIconButton component creates a button with a dynamic circular border that grows when the button is held down.
+ * The border coverage increases over time and triggers an onComplete callback when fully covered.
+ *
+ * @param {Object} props - The properties object.
+ * @param {string} [props.color=""] - The color of the button.
+ * @param {string} [props.hoverColor=""] - The color of the button when hovered.
+ * @param {Function} [props.onComplete=() => {}] - The callback function to be called when the border coverage reaches 100%.
+ * @param {number} [props.speed=10] - The speed at which the border coverage increases or decreases.
+ * @param {React.ReactNode} props.children - The child elements to be rendered inside the button.
+ *
+ * @returns {JSX.Element} The rendered HoldIconButton component.
+ */
+function HoldIconButton({color = "", hoverColor = "", onComplete = () => {}, speed = 10, children}) {
     const [ConfirmationPercentage, setConfirmationPercentage] = useState(0)
     const [ButtonClicked, setButtonClicked] = useState(false)
     const ConfirmationInterval = useRef(null)
+    const ActiveColor = hoverColor || color
 
     useEffect(() => {
         // if the button is clicked, gradually increase the border coverage
@@ -50,7 +65,7 @@ function HoldIconButton({color = "", hoverColor = "", onComplete = () => {}, chi
                     }
                     return prev + 1
                 })
-            }, 10)
+            }, speed)
         } else {
             // if ConfirmationPercentage is not 0, gradually decrease it
             if (ConfirmationPercentage > 0){
@@ -62,7 +77,7 @@ function HoldIconButton({color = "", hoverColor = "", onComplete = () => {}, chi
                         }
                         return prev - 1
                     })
-                }, 10)
+                }, speed)
             }
         }
 
@@ -71,7 +86,7 @@ function HoldIconButton({color = "", hoverColor = "", onComplete = () => {}, chi
 
     const IconButtonSX = {
         color: color,
-        "&:hover": {color: hoverColor || color},
+        "&:hover": {color: ActiveColor},
     }
 
     return (
@@ -80,6 +95,7 @@ function HoldIconButton({color = "", hoverColor = "", onComplete = () => {}, chi
             coverage={ConfirmationPercentage}
             onMouseDown={() => setButtonClicked(true)}
             onMouseUp={() => setButtonClicked(false)}
+            confirmationColor={ActiveColor}
         >
             {children}
         </StyledIconButton>
