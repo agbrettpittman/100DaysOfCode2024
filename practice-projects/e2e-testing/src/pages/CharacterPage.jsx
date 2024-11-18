@@ -31,7 +31,7 @@ export default function CharacterPage() {
                 </IconButton>
                 <HoldIconButton 
                     color={InitialDeleteIconColor} 
-                    hoverColor={'error.main'} 
+                    hoverColor={Theme.palette.error.main} 
                     onComplete={deleteCharacter}
                 >
                     <DeleteIcon />
