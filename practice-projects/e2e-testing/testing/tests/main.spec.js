@@ -255,3 +255,34 @@ test('Edit Page Inputs Work', async ({ page }) => {
     const NewCharacterName = await characterNameLocator.textContent()
     expect(NewCharacterName).toBe(InputFilledName)
 })
+
+test('Delete Button Works', async ({ page }) => {
+    await page.goto(host);
+    await addCharacterAndNavigate(page);
+    // get the current values
+    const characterNameLocator = page.locator("main h1");
+    const CharacterName = await characterNameLocator.textContent()
+    if (!CharacterName) throw new Error("Character name is null")
+    const InitialDrawerItems = await getDrawerItems(page)
+    let InitialDrawerCharacterNames = []
+    for (let i = 0; i < InitialDrawerItems.length; i++) {
+        InitialDrawerCharacterNames.push(await InitialDrawerItems[i].textContent())
+    }
+
+    // delete the character
+    const DeleteButton = page.locator(`main header button:has(svg[data-testid='DeleteIcon'])`);
+    // click the delete button and hold it for the required time plus a little extra so the browser doesn't let go too early
+    const RequiredTime = 1000
+    const HoldTime = RequiredTime + 500
+    await DeleteButton.click({ delay: HoldTime })
+
+    // wait to be navigated back to the home page
+    await page.waitForURL(host);
+    // verify the character is deleted
+    const NewDrawerItems = await getDrawerItems(page)
+    let NewDrawerCharacterNames = []
+    for (let i = 0; i < NewDrawerItems.length; i++) {
+        NewDrawerCharacterNames.push(await NewDrawerItems[i].textContent())
+    }
+    expect(NewDrawerCharacterNames).not.toContain(CharacterName)
+})
