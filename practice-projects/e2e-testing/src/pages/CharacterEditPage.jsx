@@ -49,7 +49,7 @@ export default function CharacterEditPage({}){
                 <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1 }}>
                     <MyNumberInput
                         label="Height (feet)"
-                        value={Character.height || 0}
+                        value={Character.heightFeet || 0}
                         name="height"
                         onChange={updateCharacter}
                         variant="outlined"
