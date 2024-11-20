@@ -2,6 +2,21 @@ export const host = "http://localhost:5173/";
 
 export const DrawerLocator = ".MuiDrawer-root .MuiList-root"
 
+export async function initialActions(page){
+    // go to the host (you'll initially be redirected to the login page)
+    await page.goto(host)
+    await page.waitForURL(`${host}login`)
+
+    // login using the username "test" and the current timestamp
+    const username = `test${Date.now()}`
+    await page.fill('input', username)
+    await page.click('button')
+
+    // wait for the redirect to the home page
+    await page.waitForURL(host)
+
+}
+
 export async function clickAddCharacterButton(page){
     const CharacterAddButton = page.locator(`${DrawerLocator} li:has(svg[data-testid='AddIcon'])`)
     await CharacterAddButton.click()

@@ -1,9 +1,7 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
-import { host, addCharacterAndNavigate, clickAddCharacterButton, DrawerLocator, getDrawerItems } from '../testUtils';
+import { host, addCharacterAndNavigate, clickAddCharacterButton, DrawerLocator, getDrawerItems, initialActions } from '../testUtils';
 import moment from 'moment';
-
-
 
 test('Tab Name is Correct', async ({ page }) => {
   await page.goto(host);
@@ -13,7 +11,7 @@ test('Tab Name is Correct', async ({ page }) => {
 });
 
 test('Banner Looks Correct', async ({ page }) => {
-    await page.goto(host);
+    await initialActions(page)
     // screen width
     const viewportSize = page.viewportSize();
     if (!viewportSize) throw new Error("Viewport size is null");
@@ -48,7 +46,7 @@ test('Banner Looks Correct', async ({ page }) => {
 });
 
 test("Landing Page Has Correct Text", async ({ page }) => {
-    await page.goto(host);
+    await initialActions(page)
 
     const LandingTitle = page.locator("main h2");
     expect(await LandingTitle.textContent()).toBe("Lair of the Ancients");
@@ -60,6 +58,7 @@ test("Landing Page Has Correct Text", async ({ page }) => {
 });
 
 test("Page Not Found Works", async ({ page }) => {
+    await initialActions(page)
     await page.goto(host + "does-not-exist");
     const NotFoundTitle = page.locator("main h2");
     expect(await NotFoundTitle.textContent()).toBe("404");
@@ -79,6 +78,8 @@ test("Page Not Found Works", async ({ page }) => {
 })
 
 test("Clicking Logo Redirects To Home", async ({ page }) => {
+    await initialActions(page)
+    
     await page.goto(host + "does-not-exist");
     const Logo = page.locator("header a");
     await Logo.click();
@@ -87,6 +88,7 @@ test("Clicking Logo Redirects To Home", async ({ page }) => {
 })
 
 test("Characters Root Redirects To Home", async ({ page }) => {
+    await initialActions(page)
     await page.goto(host + "characters");
     await page.waitForURL(host);
     expect(page.url()).toBe(host);
@@ -94,7 +96,7 @@ test("Characters Root Redirects To Home", async ({ page }) => {
 
 test('Clicking New Character Adds Characters', async ({ page }) => {
     
-    await page.goto(host);
+    await initialActions(page)
     const iterations = 3
 
     // Function to get the current number of characters and whether the "New Character" button is present
@@ -134,7 +136,7 @@ test('Clicking New Character Adds Characters', async ({ page }) => {
 });
 
 test('Clicking on Character in Drawer Redirects to Character Page', async ({ page }) => {
-    await page.goto(host);
+    await initialActions(page)
     // check if there are any characters
     const DrawerItemsLocator = page.locator(`${DrawerLocator} a`)
     const characterCount = await DrawerItemsLocator.count()
@@ -159,7 +161,7 @@ test('Clicking on Character in Drawer Redirects to Character Page', async ({ pag
 })
 
 test('Switching Between Characters Changes Information', async ({ page }) => {
-    await page.goto(host);
+    await initialActions(page)
     // add a new character, go to the character page, and get the character name and creation date
     await addCharacterAndNavigate(page)
     const character1NameLocator = page.locator("main h1");
@@ -180,7 +182,7 @@ test('Switching Between Characters Changes Information', async ({ page }) => {
 
 
 test('Character Page Looks Correct', async ({ page }) => {
-    await page.goto(host);
+    await initialActions(page)
     await addCharacterAndNavigate(page);
     const characterName = page.locator("main h1");
     // verify the character name is not empty and is visible
@@ -197,7 +199,7 @@ test('Character Page Looks Correct', async ({ page }) => {
 })
 
 test('Edit Button Goes to Edit Page', async ({ page }) => {
-    await page.goto(host);
+    await initialActions(page)
     await addCharacterAndNavigate(page);
     // get the current url
     const CurrentURL = page.url();
@@ -278,7 +280,7 @@ test('Edit Page Inputs Work', async ({ page }) => {
         "name","description", "weight", "age", "primaryWeapon", "secondaryWeapon"
     ]
 
-    await page.goto(host);
+    await initialActions(page)
     await addCharacterAndNavigate(page);
     //################### Get Initial Character Details ########################################
     //  Get the character name (It is auto generated so a default value cannot be reliably predicted)
@@ -359,7 +361,7 @@ test('Edit Page Inputs Work', async ({ page }) => {
 })
 
 test('Delete Button Works', async ({ page }) => {
-    await page.goto(host);
+    await initialActions(page)
     await addCharacterAndNavigate(page);
     // get the current drawer values
     const characterNameLocator = page.locator("main h1");
