@@ -10,6 +10,22 @@ test('Tab Name is Correct', async ({ page }) => {
   await expect(page).toHaveTitle("Mini LotA");
 });
 
+test('Login and Logout Works', async ({ page }) => {
+    await initialActions(page)
+    // check if the username is displayed
+    let username = await page.evaluate(() => {
+        return localStorage.getItem('username');
+    });
+    const usernameLocator = page.locator("header h2");
+    expect(await usernameLocator.textContent()).toBe(username);
+
+    // click the logout button
+    const LogoutButton = page.locator("header button");
+    await LogoutButton.click();
+    await page.waitForURL(`${host}login`)
+    expect(page.url()).toBe(`${host}login`);
+})
+
 test('Banner Looks Correct', async ({ page }) => {
     await initialActions(page)
     // screen width
