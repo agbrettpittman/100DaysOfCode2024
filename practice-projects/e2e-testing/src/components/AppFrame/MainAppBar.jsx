@@ -3,6 +3,10 @@ import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import styled from 'styled-components';
 import { Link } from "react-router-dom";
+import { Button, IconButton } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import Box from '@mui/material/Box';
+import { Logout } from '@mui/icons-material';
 
 const LogoLink = styled(Link)`
     text-decoration: none;
@@ -20,8 +24,17 @@ const Logo = styled.img`
 `
 
 export default function MainAppBar() {
-  return (
-    <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+
+    const username = localStorage.getItem('username');
+    const navigate = useNavigate();
+
+    function handleLogout(){
+        localStorage.removeItem('username');
+        navigate('/login');
+    };
+
+    return (
+        <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
             <Toolbar>
                 <LogoLink>
                     <Logo src="/LotA.png" alt="Logo" />
@@ -29,7 +42,14 @@ export default function MainAppBar() {
                         Mini LotA
                     </Typography>
                 </LogoLink>
+                <Box sx={{ flexGrow: 1 }} />
+                <Typography variant="h6" noWrap component="h2" sx={{ mr: 2 }}>
+                    {username}
+                </Typography>
+                <IconButton onClick={handleLogout} color="inherit">
+                    <Logout />
+                </IconButton>
             </Toolbar>
-    </AppBar>
-  )
+        </AppBar>
+    )
 }
