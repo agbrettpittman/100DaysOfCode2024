@@ -163,7 +163,7 @@ test('Switching Between Characters Changes Information', async ({ page }) => {
     // add a new character, go to the character page, and get the character name and creation date
     await addCharacterAndNavigate(page)
     const character1NameLocator = page.locator("main h1");
-    const character1CreationDateLocator = page.locator("main p.creationDate");
+    const character1CreationDateLocator = page.locator("main div[data-testid='creation-date'] p:last-child");
     const character1Name = await character1NameLocator.textContent()
     const character1CreationDateText = await character1CreationDateLocator.textContent()
     // wait a couple seconds
@@ -187,7 +187,7 @@ test('Character Page Looks Correct', async ({ page }) => {
     expect(await characterName.textContent()).toBeTruthy();
     expect(await characterName.isVisible()).toBe(true);
 
-    const characterCreationDate = page.locator("main p.creationDate");
+    const characterCreationDate = page.locator("main div[data-testid='creation-date'] p:last-child");
     // verify the character creation date is not empty, is visible, and is in the correct format
     expect(await characterCreationDate.textContent()).toBeTruthy();
     expect(await characterCreationDate.isVisible()).toBe(true);
@@ -209,28 +209,113 @@ test('Edit Button Goes to Edit Page', async ({ page }) => {
 })
 
 test('Edit Page Inputs Work', async ({ page }) => {
+
+    const CharacterDetails = {
+        name: {
+            oldValue: "",
+            newValue: "Ragnar Lodbrok",
+            inputSelector: `input[name="name"]`,
+            displaySelector: "main h1",
+        },
+        description: {
+            oldValue: "",
+            defaultValue: "No Description",
+            newValue: "A legendary Viking hero",
+            inputSelector: `textarea[name="description"]`,
+            displaySelector: "main p[data-testid='description']",
+        },
+        heightFeet: {
+            oldValue: "",
+            newValue: "6",
+            defaultValue: "Unknown Height",
+            inputSelector: `input[name="heightFeet"]`,
+            displaySelector: "main p[data-testid='quick-stat-height']",
+        },
+        heightInches: {
+            oldValue: "",
+            newValue: "2",
+            defaultValue: "Unknown Height",
+            inputSelector: `input[name="heightInches"]`,
+            displaySelector: "main p[data-testid='quick-stat-height']",
+        },
+        weight: {
+            oldValue: "",
+            newValue: "200",
+            newDisplayFormat: (x) => `${x} lbs`,
+            inputSelector: `input[name="weight"]`,
+            defaultValue: "Unknown Weight",
+            displaySelector: "main p[data-testid='quick-stat-weight']",
+        },
+        age: {
+            oldValue: "",
+            newValue: "40",
+            newDisplayFormat: (x) => `${x} years old`,
+            defaultValue: "Unknown Age",
+            inputSelector: `input[name="age"]`,
+            displaySelector: "main p[data-testid='quick-stat-age']",
+        },
+        primaryWeapon: {
+            oldValue: "",
+            newValue: "Axe",
+            defaultValue: "Unknown",
+            inputSelector: `input[name="primaryWeapon"]`,
+            displaySelector: "main div[data-testid='attribute-Primary'] p:last-child",
+        },
+        secondaryWeapon: {
+            oldValue: "",
+            newValue: "Shield",
+            defaultValue: "Unknown",
+            inputSelector: `input[name="secondaryWeapon"]`,
+            displaySelector: "main div[data-testid='attribute-Secondary'] p:last-child",
+        },
+    }
+    const NormalInitialChecks = [
+        "description", "heightFeet", "heightInches", 
+        "weight", "age", "primaryWeapon", "secondaryWeapon"
+    ]
+
+    const NormalPostChecks = [
+        "name","description", "weight", "age", "primaryWeapon", "secondaryWeapon"
+    ]
+
     await page.goto(host);
     await addCharacterAndNavigate(page);
-    // get the current values
-    const characterNameLocator = page.locator("main h1");
-    const CharacterName = await characterNameLocator.textContent()
-    if (!CharacterName) throw new Error("Character name is null")
+    //################### Get Initial Character Details ########################################
+    //  Get the character name (It is auto generated so a default value cannot be reliably predicted)
+    const characterNameLocator = page.locator(CharacterDetails.name.displaySelector);
+    CharacterDetails.name.oldValue = await characterNameLocator.textContent() || ''
+
+    //Run through the normal initial checks
+    NormalInitialChecks.forEach(async (key) => {
+        const locator = page.locator(CharacterDetails[key].displaySelector);
+        CharacterDetails[key].oldValue = await locator.textContent() || ''
+        expect(CharacterDetails[key].oldValue).toBe(CharacterDetails[key].defaultValue)
+    })
+
+    // Get the initial drawer values to check later
     const InitialDrawerItems = await getDrawerItems(page)
     let InitialDrawerCharacterNames = []
     for (let i = 0; i < InitialDrawerItems.length; i++) {
         InitialDrawerCharacterNames.push(await InitialDrawerItems[i].textContent())
     }
+    expect(InitialDrawerCharacterNames).toContain(CharacterDetails.name.oldValue)
 
-    // go to the edit page
-    const CurrentURL = page.url();
-    const EditURL = `${CurrentURL}/edit`
+    //################### Navigate to Edit Page ########################################
+    const CharacterPageURL = page.url();
+    const EditURL = `${CharacterPageURL}/edit`
     await page.goto(EditURL);
 
-    //------------------------------------- Name Input ------------------------------------
+    //################### Make changes to character ########################################
+
+    // Verify the character name has loaded
     const NameInput = page.locator(`input[name="name"]`);
-    await expect(NameInput).toHaveValue(CharacterName)
-    const InputFilledName = "New Name"
-    await NameInput.fill(InputFilledName)
+    await expect(NameInput).toHaveValue(CharacterDetails.name.oldValue)
+
+    for (const Detail in CharacterDetails) {
+        const { newValue, inputSelector } = CharacterDetails[Detail]
+        const Input = page.locator(inputSelector);
+        await Input.fill(newValue)
+    }
 
     // verify the drawer has not changed
     const NewDrawerItems = await getDrawerItems(page)
@@ -239,21 +324,38 @@ test('Edit Page Inputs Work', async ({ page }) => {
         NewDrawerCharacterNames.push(await NewDrawerItems[i].textContent())
     }
 
-    InitialDrawerCharacterNames.forEach((name, index) => {
-        // verify the right name has changed
-        if (name === CharacterName) {
-            expect(NewDrawerCharacterNames[index]).toBe(InputFilledName)
+    // verify the right name has changed in the drawer
+    InitialDrawerCharacterNames.forEach((drawerName, index) => {
+        if (drawerName === CharacterDetails.name.oldValue) {
+            expect(NewDrawerCharacterNames[index]).toBe(CharacterDetails.name.newValue)
         } else {
-            expect(NewDrawerCharacterNames[index]).toBe(name)
+            expect(NewDrawerCharacterNames[index]).toBe(drawerName)
         }
     })
 
     //##################### Navigate Back to Character Page ##############################
-    await page.goto(CurrentURL);
-    await page.waitForURL(CurrentURL)
+    const BackButton = page.locator(`main a:has(svg[data-testid='ArrowBackIcon'])`);
+    await BackButton.click();
+    await page.waitForURL(CharacterPageURL)
     await characterNameLocator.waitFor({ state: 'attached' });
-    const NewCharacterName = await characterNameLocator.textContent()
-    expect(NewCharacterName).toBe(InputFilledName)
+
+    //##################### Verify Changes ##############################################
+
+    // Verify normal fields have changed
+
+    NormalPostChecks.forEach(async (key) => {
+        const locator = page.locator(CharacterDetails[key].displaySelector);
+        const newValue = CharacterDetails[key].newValue
+        const newValueFormatted = (CharacterDetails[key].newDisplayFormat) ? 
+            CharacterDetails[key].newDisplayFormat(newValue) : newValue
+        expect(await locator.textContent()).toBe(newValueFormatted)
+    })
+
+    // verify height value (this becomes a combined value)
+    const ExpectedHeightValue = `${CharacterDetails.heightFeet.newValue}' ${CharacterDetails.heightInches.newValue}"`
+    const HeightValueLocator = page.locator(CharacterDetails.heightFeet.displaySelector);
+    expect(await HeightValueLocator.textContent()).toBe(ExpectedHeightValue)
+
 })
 
 test('Delete Button Works', async ({ page }) => {

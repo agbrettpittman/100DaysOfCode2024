@@ -6,6 +6,8 @@ import { Typography, Box, IconButton, useTheme, Divider } from '@mui/material'
 import { transparentize } from 'polished'
 import HoldIconButton from '@/components/UI/HoldIconButton'
 
+const NoValueSX = { color: 'text.disabled', fontStyle: 'italic' }
+
 export default function CharacterPage() {
     const { id } = useParams()
     const Theme = useTheme()
@@ -16,11 +18,8 @@ export default function CharacterPage() {
     const HeightValue = (Character.heightFeet || Character.heightInches) ? `${Character.heightFeet}' ${Character.heightInches}"` : ''
 
     return (
-        <div>
-            <Box 
-                display={'flex'} flexDirection={'row'} gap={'1rem'} alignItems={'center'} sx={{ mb: 2}}
-                component={'header'}
-            >
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxWidth: '60rem', width: '30vw' }}>
+            <Box display={'flex'} flexDirection={'row'} gap={'1rem'} alignItems={'center'} component={'header'}>
                 <Typography component="h1" variant="h4">
                     {Character.name}
                 </Typography>
@@ -38,34 +37,64 @@ export default function CharacterPage() {
                     <DeleteIcon />
                 </HoldIconButton>
             </Box>
+            <Box sx={{display: "flex", flexDirection: "row", gap: 1, mb: 1}} data-testid="creation-date">
+                <Typography variant="body1">Created:</Typography>
+                <Typography variant="body1" sx={{fontStyle: "italic"}}>{DisplayCreation}</Typography>
+            </Box>
             <Box sx={{display: "flex", flexDirection: "row", gap: "1rem"}}>
-                <AttributeText value={HeightValue} fallback="Unknown Height" />
+                <QuickStat value={HeightValue} fallback="Unknown Height" testId='height' />
                 <Divider orientation="vertical" flexItem />
-                <AttributeText 
+                <QuickStat 
                     value={Character.weight} fallback="Unknown Weight" 
-                    toDisplay={(value) => `${value} lbs`} 
+                    toDisplay={(value) => `${value} lbs`} testId='weight'
                 />
                 <Divider orientation="vertical" flexItem />
-                <AttributeText 
-                    value={Character.age} fallback="Unknown Age" 
+                <QuickStat 
+                    value={Character.age} fallback="Unknown Age" testId='age'
                     toDisplay={(value) => `${value} years old`}
                 />
             </Box>
-            <p className="creationDate">{DisplayCreation}</p>
-        </div>
+            <Typography variant="body1" data-testid="description" sx={(Character.description) ? undefined : NoValueSX}>
+                {Character.description || "No Description"}
+            </Typography>
+            <Divider />
+            <AttributeItem label="Primary" value={Character.primaryWeapon} />
+            <AttributeItem label="Secondary" value={Character.secondaryWeapon} />
+        </Box>
     )
 }
 
-function AttributeText({value, fallback, toDisplay = (value) => value}){
+function QuickStat({value, fallback, toDisplay = (value) => value, testId = ""}){
 
-    const SX = {
-        color: (value) ? "text.primary" : "text.disabled",
-        fontStyle: (value) ? "normal" : "italic"
+    let customSX = {
+        color: "text.primary",
+        fontStyle: "normal"
     }
 
+    if (!value) customSX = NoValueSX
+
     return (
-        <Typography variant="body1" sx={SX}>
+        <Typography variant="body1" sx={customSX} data-testid={`quick-stat-${testId}`}>
             {(value) ? toDisplay(value) : fallback}
         </Typography>
+    )
+}
+
+function AttributeItem({label, value, fallback = "Unknown"}){
+
+    let customSX = {
+        color: "text.primary",
+        fontStyle: "normal"
+    }
+
+    if (!value) customSX = NoValueSX
+
+    return (
+        <Box sx={{display: "flex", flexDirection: "row", gap: 1}} data-testid={`attribute-${label}`}>
+            <Typography variant="body1" sx={{fontWeight: "bold"}}>{label}:</Typography>
+            <Typography variant="body1" sx={customSX}>
+                {(value) ? value : fallback}
+            </Typography>
+        </Box>
     )
 }

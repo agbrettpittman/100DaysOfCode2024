@@ -19,9 +19,9 @@ export default function CharacterEditPage({}){
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxWidth: '60rem', width: '30vw' }}>
-            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, alignItems: 'center' }}>
                 <IconButton
-                    href={`.`}
+                    href={`/characters/${id}`}
                     sx={{ color: InitialBackIconColor, "&:hover": {color: 'primary.main'}}}
                 >
                     <ArrowBack />

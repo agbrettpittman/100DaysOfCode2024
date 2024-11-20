@@ -56,6 +56,7 @@ export function MyNumberInput({
             onChange={handleChange}
             sx={NewSX}
             onKeyDown={handleKeyPress}
+            name={name}
             {...otherProps}
         />
     );
