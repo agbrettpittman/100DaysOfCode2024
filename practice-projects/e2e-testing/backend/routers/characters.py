@@ -48,3 +48,9 @@ async def update_character(id: int, character: CharacterModel):
     character["id"] = id
     characters_db = [character if character["id"] == id else character for character in characters_db]
     return character
+
+@router.delete("/{id}")
+async def delete_character(id: int):
+    global characters_db
+    characters_db = [character for character in characters_db if character["id"] != id]
+    return {"message": "Character deleted successfully"}
