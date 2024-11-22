@@ -1,6 +1,6 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
-import { host, addCharacterAndNavigate, clickAddCharacterButton, DrawerLocator, getDrawerItems, initialActions } from '../testUtils';
+import { host, addCharacterAndNavigate, clickAddCharacterButton, DrawerLocator, getDrawerItems, initialActions, logoutOfApp } from '../testUtils';
 import moment from 'moment';
 
 test('Tab Name is Correct', async ({ page }) => {
@@ -20,9 +20,7 @@ test('Login and Logout Works', async ({ page }) => {
     expect(await usernameLocator.textContent()).toBe(username);
 
     // click the logout button
-    const LogoutButton = page.locator("header button");
-    await LogoutButton.click();
-    await page.waitForURL(`${host}login`)
+    await logoutOfApp(page)
     expect(page.url()).toBe(`${host}login`);
 })
 
@@ -405,4 +403,36 @@ test('Delete Button Works', async ({ page }) => {
         NewDrawerCharacterNames.push(await NewDrawerItems[i].textContent())
     }
     expect(NewDrawerCharacterNames).not.toContain(CharacterName)
+})
+
+test('Authorization Works', async ({ page }) => {
+    // log in and add a character
+    await initialActions(page)
+    await addCharacterAndNavigate(page)
+    const CurrentURL = page.url()
+    await logoutOfApp(page)
+
+    // log back in (this time with a different username)
+    await initialActions(page)
+    await page.goto(CurrentURL)
+
+    // verify a 403 error is displayed
+    const ErrorTitle = page.locator("main h2");
+    const ErrorSubtitle = page.locator("main h3");
+    const ErrorText = page.locator("main p");
+    const ErrorButton = page.locator("main button");
+
+    // wait for the title to be mounted
+    await ErrorTitle.waitFor({ state: 'attached' });
+
+    // verify the error text
+    expect(await ErrorTitle.textContent()).toBe("403");
+    expect(await ErrorSubtitle.textContent()).toBe("Unauthorized");
+    expect(await ErrorText.textContent()).toBe("You do not have permission to view this page.");
+    expect(await ErrorButton.textContent()).toBe("Go to Home");
+
+    // click the button and verify the URL changes
+    await ErrorButton.click();
+    await page.waitForURL(host);
+    expect(page.url()).toBe(host);
 })

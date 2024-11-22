@@ -65,4 +65,12 @@ export async function addCharacterAndNavigate(page){
     }
 
     await page.waitForURL(host + newCharacterHref)
+    // wait for the character name to load
+    await page.waitForSelector("main h1")
+}
+
+export async function logoutOfApp(page){
+    const LogoutButton = page.locator(".MuiAppBar-root button");
+    await LogoutButton.click();
+    await page.waitForURL(`${host}login`)
 }
