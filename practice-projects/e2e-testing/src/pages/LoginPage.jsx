@@ -5,9 +5,16 @@ import { db } from '@utils/db';
 
 const LoginPage = () => {
     const [username, setUsername] = useState('');
+    const [message, setMessage] = useState('');
     const navigate = useNavigate();
 
     function handleLogin() {
+        if (!username) return;
+        // if the username contains special characters, display an error message
+        if (username.match(/[^A-Za-z0-9]/)) {
+            setMessage('Username can only contain letters and numbers');
+            return;
+        }
         localStorage.setItem('username', username);
         // check for any characters that have __replace__ as the creator and update them
         // with the current username
@@ -39,6 +46,9 @@ const LoginPage = () => {
                     Login
                 </Button>
             </Box>
+            <Typography variant="body1" component="p" align="center">
+                {message}
+            </Typography>
         </Box>
     );
 };

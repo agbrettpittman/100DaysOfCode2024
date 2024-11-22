@@ -10,6 +10,15 @@ test('Tab Name is Correct', async ({ page }) => {
   await expect(page).toHaveTitle("Mini LotA");
 });
 
+test('Unable to use special characters in username', async ({ page }) => {
+    await page.goto(host + "login");
+    const username = "test!@#$"
+    await page.fill('input', username)
+    await page.click('button')
+    const ErrorMessage = page.locator("p");
+    expect(await ErrorMessage.textContent()).toBe("Username can only contain letters and numbers");
+})
+
 test('Login and Logout Works', async ({ page }) => {
     await initialActions(page)
     // check if the username is displayed
