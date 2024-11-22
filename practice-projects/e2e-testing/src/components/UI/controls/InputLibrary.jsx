@@ -18,8 +18,8 @@ export function MyNumberInput({
         val = Number(val);
 
         if (Number.isNaN(Number(val))) return; // verify the value is a number, if it isn't don't change the value
-        else if (max && val > max) val = max; // verify the value is less than the max
-        else if (min && val < min) val = min; // verify the value is greater than the min
+        else if (max !== undefined && val > max) val = max; // verify the value is less than the max
+        else if (min !== undefined && val < min) val = min; // verify the value is greater than the min
         else if (val % 1 != 0) val = Math.round(val); // verify the value is a whole number
         runOnChange(val);
     }

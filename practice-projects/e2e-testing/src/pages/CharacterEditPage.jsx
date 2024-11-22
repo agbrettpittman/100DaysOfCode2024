@@ -55,6 +55,7 @@ export default function CharacterEditPage({}){
                         variant="outlined"
                         sx={{ width: '6rem' }}
                         fullWidth
+                        min={0}
                     />
                     <MyNumberInput
                         label="Height (inches)"
@@ -63,6 +64,7 @@ export default function CharacterEditPage({}){
                         onChange={updateCharacter}
                         sx={{ width: '7rem' }}
                         variant="outlined"
+                        min={0}
                     />
                 </Box>
                 <MyNumberInput
@@ -72,6 +74,7 @@ export default function CharacterEditPage({}){
                     onChange={updateCharacter}
                     sx={{ width: '6rem' }}
                     variant="outlined"
+                    min={0}
                 />
                 <MyNumberInput
                     label="Age (Years)"
@@ -80,6 +83,7 @@ export default function CharacterEditPage({}){
                     onChange={updateCharacter}
                     sx={{ width: '6rem' }}
                     variant="outlined"
+                    min={0}
                 />
             </Box>
             <TextField
