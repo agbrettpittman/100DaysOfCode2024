@@ -27,6 +27,7 @@ const MainRouter = createBrowserRouter(createRoutesFromElements(
                     <Route path="characters">
                         <Route index={true} element={<Navigate to="/" />} />
                         <Route path=":id" element={<CharacterProtectionRoute />} />
+                        <Route path=":id/*" element={<CharacterProtectionRoute />} />
                     </Route>
                     <Route path="*" element={<NotFound />} />
                 </Route>
