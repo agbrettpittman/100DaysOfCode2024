@@ -15,16 +15,18 @@ const drawerWidth = 240;
 
 export default function AppNav() {
 
-    const Characters = useLiveQuery(() => 
-        db.characters.toArray().then((characters) => characters.reverse())
-    , []) || []
+    const Characters = useLiveQuery(() => {
+        const Username = localStorage.getItem('username')
+        return db.characters.where('creator').equals(Username).reverse().toArray()
+    }, []) || []
 
     async function createCharacter() {
         // get the count of all characters that match a regex with the name "New Character" and a number
         const count = Characters.filter((character) => character.name.match(/^New Character \d+$/)).length
         const newCharacter = {
             name: `New Character ${count + 1}`,
-            creationDate: new Date()
+            creationDate: new Date(),
+            creator: localStorage.getItem('username')
         }
         await db.characters.add(newCharacter)
     }

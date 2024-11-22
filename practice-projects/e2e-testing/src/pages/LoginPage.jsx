@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Box, TextField, Button, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { db } from '@utils/db';
 
 const LoginPage = () => {
     const [username, setUsername] = useState('');
@@ -8,6 +9,9 @@ const LoginPage = () => {
 
     function handleLogin() {
         localStorage.setItem('username', username);
+        // check for any characters that have __replace__ as the creator and update them
+        // with the current username
+        db.characters.where('creator').equals('__replace__').modify({ creator: username });
         navigate('/');
     }
 
