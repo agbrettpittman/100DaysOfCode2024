@@ -17,6 +17,7 @@ import LoginPage from "@pages/LoginPage";
 import { db } from "./db";
 import { useEffect, useState } from "react";
 import UnauthorizedPage from "@pages//UnauthorizedPage";
+import axios from "axios";
 
 const MainRouter = createBrowserRouter(createRoutesFromElements(
     <Route path="/" errorElement={<ErrorPage />}>
@@ -42,13 +43,13 @@ function CharacterProtectionRoute() {
     const [Authorized, setAuthorized] = useState(null);
 
     useEffect(() => {
-        db.characters.get(Number(id)).then((result) => {
-            if (result.creator === localStorage.getItem('username')) {
+        axios.get(`/characters/${id}`).then((response) => {
+            if (response.data.creator === localStorage.getItem('username')) {
                 setAuthorized(true);
             } else {
                 setAuthorized(false);
             }
-        });
+        })
     }, [id]);
 
     if (Authorized === null) return null;

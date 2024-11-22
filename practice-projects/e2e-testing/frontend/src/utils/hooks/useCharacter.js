@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { db } from '@utils/db'
 import { useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
 
 export default function useCharacter(id){
     
@@ -9,26 +10,27 @@ export default function useCharacter(id){
     const navigate = useNavigate()
 
     useEffect(() => {
-        db.characters.get(Number(id)).then((result) => {
-            updateState(result)
+        axios.get(`/characters/${id}`).then((response) => {
+            updateState(response.data)
         })
     }, [id])
 
     function setCharacter(key, value){
+        let newCharacter = {}
         updateState((prev) => {
-            return {
-                ...prev,
-                [key]: value
-            }
+            newCharacter = {...prev, [key]: value}
+            return newCharacter
         })
-        db.characters.update(Number(id), {[key]: value})
+        axios.put(`/characters/${id}`, newCharacter)
     }
 
     function deleteCharacter(){
-        db.characters.delete(Number(id))
-        if (Number(routeId) === Number(id)){
-            navigate('/')
-        }
+        console.log("deleting")
+        axios.delete(`/characters/${id}`).then(() => {
+            if (Number(routeId) === Number(id)){
+                navigate('/')
+            }
+        })
     }
 
     return { Character, setCharacter, deleteCharacter }
