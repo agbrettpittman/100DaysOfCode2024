@@ -233,6 +233,34 @@ test('Edit Button Goes to Edit Page', async ({ page }) => {
     expect(page.url()).toBe(ExpectedEditURL);
 })
 
+test('Edit Page Number Input Arrow Keys Work', async ({ page }) => {
+    await initialActions(page)
+    await addCharacterAndNavigate(page);
+    const CurrentURL = page.url();
+    const EditURL = `${CurrentURL}/edit`
+    await page.goto(EditURL);
+
+    const CharacterDetails = {
+        heightFeet: `input[name="heightFeet"]`,
+        heightInches: `input[name="heightInches"]`,
+        weight: `input[name="weight"]`,
+        age: `input[name="age"]`,
+    }
+
+    for (const Detail in CharacterDetails) {
+        const Input = page.locator(CharacterDetails[Detail]);
+        await Input.fill("0")
+        await Input.press("ArrowUp")
+        await Input.press("ArrowUp")
+        await Input.press("ArrowUp")
+        expect(await Input.inputValue()).toBe("3")
+        await Input.press("ArrowDown")
+        await Input.press("ArrowDown")
+        await Input.press("ArrowDown")
+        expect(await Input.inputValue()).toBe("0")
+    }
+})
+
 test('Edit Page Inputs Work', async ({ page }) => {
 
     const CharacterDetails = {
