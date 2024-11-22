@@ -16,6 +16,7 @@
     "@mui/icons-material": "^6.1.6",
     "@mui/material": "^6.1.6",
     "@mui/styled-engine-sc": "^6.1.6",
+    "axios": "^1.7.7",
     "dexie": "^4.0.9",
     "dexie-react-hooks": "^1.1.7",
     "moment": "^2.30.1",

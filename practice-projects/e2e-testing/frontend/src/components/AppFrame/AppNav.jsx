@@ -5,20 +5,26 @@ import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
-import { db } from '@utils/db';
 import { Divider, ListItemIcon } from '@mui/material';
 import { Add } from '@mui/icons-material';
-import { useLiveQuery } from 'dexie-react-hooks';
 import DrawerCharacterListItem from './DrawerCharacterListItem';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
 
 const drawerWidth = 240;
 
 export default function AppNav() {
 
-    const Characters = useLiveQuery(() => {
-        const Username = localStorage.getItem('username')
-        return db.characters.where('creator').equals(Username).reverse().toArray()
-    }, []) || []
+    const [Characters, setCharacters] = useState([])
+
+    useEffect(() => {
+        getCharacters()
+    }, [])
+    
+    async function getCharacters() {
+        const response = await axios.get('/characters')
+        setCharacters(response.data)
+    }
 
     async function createCharacter() {
         // get the count of all characters that match a regex with the name "New Character" and a number
@@ -28,7 +34,7 @@ export default function AppNav() {
             creationDate: new Date(),
             creator: localStorage.getItem('username')
         }
-        await db.characters.add(newCharacter)
+        axios.post('/characters', newCharacter).then(() => getCharacters())
     }
 
     return (

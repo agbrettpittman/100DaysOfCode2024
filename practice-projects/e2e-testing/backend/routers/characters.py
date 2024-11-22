@@ -11,7 +11,7 @@ characters_db = []
 latest_id = 0
 
 class CharacterModel(BaseModel):
-    username: str
+    creator: str
     name: str
     description: str | None = None
     heightFeet: int | None = None
@@ -21,14 +21,14 @@ class CharacterModel(BaseModel):
     primaryWeapon: str | None = None
     secondaryWeapon: str | None = None
 
-@router.get("/")
-async def get_all_characters(username: str = ""):
+@router.get("")
+async def get_all_characters(creator: str = ""):
     return_characters = characters_db
-    if username:
-        return_characters = [character for character in characters_db if character["username"] == username]
+    if creator:
+        return_characters = [character for character in characters_db if character["creator"] == creator]
     return return_characters
 
-@router.post("/")
+@router.post("")
 async def create_character(character: CharacterModel):
     global latest_id
     latest_id += 1
