@@ -1,8 +1,9 @@
 from fastapi import FastAPI
+from .routers import characters
 
 app = FastAPI()
 
-characters_db = {}
+app.include_router(characters.router)
 
 
 @app.get("/")
