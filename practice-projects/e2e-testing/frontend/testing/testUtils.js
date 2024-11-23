@@ -7,8 +7,9 @@ export async function initialActions(page){
     await page.goto(host)
     await page.waitForURL(`${host}login`)
 
-    // login using the username "test" and the current timestamp
-    const username = `test${Date.now()}`
+    // login using the username `test-{rando_string}-{current_timestamp}
+    const randomString = Math.random().toString(36).substring(7)
+    const username = `test${randomString}${Date.now()}`
     await page.fill('input', username)
     await page.click('button')
 
