@@ -61,3 +61,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# database
+database/main.db

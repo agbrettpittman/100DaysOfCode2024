@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from .routers import characters
 from fastapi.middleware.cors import CORSMiddleware
+from .database.db import initialize_database
 
 app = FastAPI()
 
@@ -15,6 +16,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+initialize_database()
 
 app.include_router(characters.router)
 
