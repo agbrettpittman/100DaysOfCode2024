@@ -16,16 +16,14 @@ export default function useCharacter(id){
     }, [id])
 
     function setCharacter(key, value){
-        let newCharacter = {}
-        updateState((prev) => {
-            newCharacter = {...prev, [key]: value}
-            return newCharacter
+        let newCharacter = {...Character}
+        newCharacter[key] = value
+        axios.put(`/characters/${id}`, newCharacter).then( res => {
+            updateState(res.data)
         })
-        axios.put(`/characters/${id}`, newCharacter)
     }
 
     function deleteCharacter(){
-        console.log("deleting")
         axios.delete(`/characters/${id}`).then(() => {
             if (Number(routeId) === Number(id)){
                 navigate('/')

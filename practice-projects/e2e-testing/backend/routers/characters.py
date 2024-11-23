@@ -46,7 +46,7 @@ async def update_character(id: int, character: CharacterModel):
     global characters_db
     character = character.model_dump()
     character["id"] = id
-    characters_db = [character if character["id"] == id else character for character in characters_db]
+    characters_db = [character if db_character["id"] == id else db_character for db_character in characters_db]
     return character
 
 @router.delete("/{id}")
