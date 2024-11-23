@@ -9,32 +9,26 @@ import { Divider, ListItemIcon } from '@mui/material';
 import { Add } from '@mui/icons-material';
 import DrawerCharacterListItem from './DrawerCharacterListItem';
 import axios from 'axios';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
+import { AppContext } from '@/App';
 
 const drawerWidth = 240;
 
 export default function AppNav() {
 
-    const [Characters, setCharacters] = useState([])
-
-    useEffect(() => {
-        getCharacters()
-    }, [])
-    
-    async function getCharacters() {
-        const response = await axios.get('/characters')
-        setCharacters(response.data)
-    }
+    const { CharacterList, getCharacterList } = useContext(AppContext)
 
     async function createCharacter() {
         // get the count of all characters that match a regex with the name "New Character" and a number
-        const count = Characters.filter((character) => character.name.match(/^New Character \d+$/)).length
+        const count = CharacterList.filter((character) => character.name.match(/^New Character \d+$/)).length
         const newCharacter = {
             name: `New Character ${count + 1}`,
             creationDate: new Date(),
             creator: localStorage.getItem('username')
         }
-        axios.post('/characters', newCharacter).then(() => getCharacters())
+        axios.post('/characters', newCharacter).then(() => {
+            getCharacterList()
+        })
     }
 
     return (
@@ -58,7 +52,7 @@ export default function AppNav() {
                         </ListItemButton>
                     </ListItem>
                     <Divider />
-                    {Characters.map((character) => (
+                    {CharacterList.map((character) => (
                         <DrawerCharacterListItem key={character.id} character={character} />
                     ))}
                 </List>
