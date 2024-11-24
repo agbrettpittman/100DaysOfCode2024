@@ -28,8 +28,11 @@ export default function App() {
     async function getCharacterList() {
         const creator = localStorage.getItem('username')
         const params = { creator }
-        const response = await axios.get('/characters', { params })
-        setCharacterList(response.data)
+        axios.get('/characters', { params }).then((response) => {
+            setCharacterList(response.data)
+        }).catch((error) => {
+            console.error(error)
+        })
     }
 
     const AppContextValue = {

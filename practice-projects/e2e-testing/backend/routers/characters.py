@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlite3 import Connection, Cursor
 from ..database.db import get_db
@@ -14,7 +14,7 @@ latest_id = 0
 
 class CharacterModel(BaseModel):
     creator: str
-    name: str
+    name: str = ""
     description: str | None = None
     heightFeet: int | None = None
     heightInches: int | None = None
@@ -31,8 +31,10 @@ async def get_all_characters(creator: str = "", db: tuple[Cursor, Connection] = 
     where_clause = f"WHERE {' AND '.join(where_statements)}" if where_statements else ""
     cursor.execute(f"SELECT * FROM characters {where_clause}", {"creator": creator})
     characters = cursor.fetchall()
-    return_characters = [ dict(character) for character in characters ]
-        
+    return_characters = []
+    for character in characters:
+        return_characters.append(dict(character))
+    print(return_characters)
     return return_characters
 
 @router.post("")
@@ -49,8 +51,12 @@ async def create_character(character: CharacterModel, db: tuple[Cursor, Connecti
             :weight, :age, :primaryWeapon, :secondaryWeapon
         )
     ''', character)
-    conn.commit()
     character["id"] = cursor.lastrowid
+    # if the name was null, set it to "Character {id}"
+    if character["name"] == "" or character["name"] is None:
+        character["name"] = f"Character {character['id']}"
+        cursor.execute("UPDATE characters SET name = :name WHERE id = :id", character)
+    conn.commit()
     return character
     
 
@@ -59,6 +65,8 @@ async def get_character(id: int, db: tuple[Cursor, Connection] = Depends(get_db)
     cursor, conn = db
     cursor.execute("SELECT * FROM characters WHERE id = :id", {"id": id})
     character = cursor.fetchone()
+    if not character:
+        raise HTTPException(status_code=404, detail="Character not found")
     return dict(character)
     
 

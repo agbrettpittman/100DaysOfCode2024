@@ -19,11 +19,7 @@ export default function AppNav() {
     const { CharacterList, getCharacterList } = useContext(AppContext)
 
     async function createCharacter() {
-        // get the count of all characters that match a regex with the name "New Character" and a number
-        const count = CharacterList.filter((character) => character.name.match(/^New Character \d+$/)).length
         const newCharacter = {
-            name: `New Character ${count + 1}`,
-            creationDate: new Date(),
             creator: localStorage.getItem('username')
         }
         axios.post('/characters', newCharacter).then(() => {

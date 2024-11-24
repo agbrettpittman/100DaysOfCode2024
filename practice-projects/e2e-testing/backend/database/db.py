@@ -20,6 +20,7 @@ def initialize_database():
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS characters (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                creationDate TEXT DEFAULT CURRENT_TIMESTAMP,
                 creator TEXT NOT NULL,
                 name TEXT NOT NULL,
                 description TEXT,
