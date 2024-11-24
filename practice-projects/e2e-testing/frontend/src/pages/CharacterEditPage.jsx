@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom"
 import useCharacter from "@utils/hooks/useCharacter";
-import {TextField, Box, IconButton, useTheme} from '@mui/material';
+import {TextField, Box, IconButton, useTheme, Button} from '@mui/material';
 import { MyNumberInput } from "@/components/UI/controls/InputLibrary";
 import { ArrowBack } from "@mui/icons-material";
 import { transparentize } from "polished";
@@ -9,7 +9,7 @@ import { transparentize } from "polished";
 export default function CharacterEditPage({}){
     
     const { id } = useParams()
-    const {Character, setCharacter} = useCharacter(id)
+    const {Character, setCharacter, saveCharacter} = useCharacter(id)
     const Theme = useTheme()
     const InitialBackIconColor = transparentize(0.5, Theme.palette.primary.main)
 
@@ -45,7 +45,7 @@ export default function CharacterEditPage({}){
                 multiline
                 rows={4}
             />
-            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 3 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', gap: 2 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1 }}>
                     <MyNumberInput
                         label="Height (feet)"
@@ -102,6 +102,12 @@ export default function CharacterEditPage({}){
                 variant="outlined"
                 fullWidth
             />
+            <Button
+                variant="contained"
+                onClick={saveCharacter}
+            >
+                Save
+            </Button>
         </Box>
     )
 

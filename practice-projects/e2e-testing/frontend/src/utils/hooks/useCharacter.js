@@ -18,12 +18,17 @@ export default function useCharacter(id){
     }, [id])
 
     function setCharacter(key, value){
-        let newCharacter = {...Character}
-        newCharacter[key] = value
-        axios.put(`/characters/${id}`, newCharacter).then( res => {
-            updateState(res.data)
-            if (key === 'name') getCharacterList()
-            
+        updateState((prevState) => {
+            return {
+                ...prevState,
+                [key]: value
+            }
+        })
+    }
+
+    function saveCharacter(){
+        axios.put(`/characters/${id}`, Character).then(() => {
+            getCharacterList()
         })
     }
 
@@ -36,6 +41,6 @@ export default function useCharacter(id){
         })
     }
 
-    return { Character, setCharacter, deleteCharacter }
+    return { Character, setCharacter, deleteCharacter, saveCharacter }
 
 }
