@@ -26,9 +26,9 @@ export async function clickAddCharacterButton(page){
 export async function getDrawerItems(page, charactersExpected = 0){
     const DrawerItemsLocator = page.locator(`${DrawerLocator} a`)
 
-    // If we expect characters, wait for the first character to appear
+    // If we expect characters, wait for that character to be attached
     if (charactersExpected) {
-        await DrawerItemsLocator.first().waitFor({ state: 'attached' });
+        await DrawerItemsLocator.nth(charactersExpected - 1).waitFor({ state: 'attached' });
     }
 
     const Items = await DrawerItemsLocator.all()
@@ -52,7 +52,8 @@ export async function addCharacterAndNavigate(page){
     // click the add character button
     await clickAddCharacterButton(page)
     // get the characters currently in the drawer
-    const NewDrawerList = await getDrawerItems(page, 1)
+    const ExpectedNewCharacterCount = InitialCharacterHrefs.length + 1
+    const NewDrawerList = await getDrawerItems(page, ExpectedNewCharacterCount)
     // get the href list of the characters
     const NewCharacterHrefs = await getDrawerHrefList(NewDrawerList)
     // find the new character href
