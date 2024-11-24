@@ -352,6 +352,7 @@ test('Edit Page Inputs Work', async ({ page }) => {
         InitialDrawerCharacterNames.push(await InitialDrawerItems[i].textContent())
     }
     expect(InitialDrawerCharacterNames).toContain(CharacterDetails.name.oldValue)
+    const CharacterDrawerItemIndex = InitialDrawerCharacterNames.indexOf(CharacterDetails.name.oldValue)
 
     //################### Navigate to Edit Page ########################################
     const CharacterPageURL = page.url();
@@ -368,23 +369,21 @@ test('Edit Page Inputs Work', async ({ page }) => {
         const { newValue, inputSelector } = CharacterDetails[Detail]
         const Input = page.locator(inputSelector);
         await Input.fill(newValue)
-    }
+    }    
 
-    // verify the drawer has not changed
-    const NewDrawerItems = await getDrawerItems(page)
-    let NewDrawerCharacterNames = []
+    //################### Save Changes ########################################
+    const SaveButton = page.locator(`main button:has-text("Save")`);
+    await SaveButton.click();
+
+    // ################### Verify Changes to Drawer ###########################
+    const NewDrawerItems = await getDrawerItems(page, CharacterDrawerItemIndex)
     for (let i = 0; i < NewDrawerItems.length; i++) {
-        NewDrawerCharacterNames.push(await NewDrawerItems[i].textContent())
-    }
-
-    // verify the right name has changed in the drawer
-    InitialDrawerCharacterNames.forEach((drawerName, index) => {
-        if (drawerName === CharacterDetails.name.oldValue) {
-            expect(NewDrawerCharacterNames[index]).toBe(CharacterDetails.name.newValue)
+        if (i === CharacterDrawerItemIndex) {
+            await expect(NewDrawerItems[i]).toHaveText(CharacterDetails.name.newValue)
         } else {
-            expect(NewDrawerCharacterNames[index]).toBe(drawerName)
+            expect(NewDrawerItems[i]).toBe(InitialDrawerItems[i])
         }
-    })
+    }
 
     //##################### Navigate Back to Character Page ##############################
     const BackButton = page.locator(`main a:has(svg[data-testid='ArrowBackIcon'])`);
