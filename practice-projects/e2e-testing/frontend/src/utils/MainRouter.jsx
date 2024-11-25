@@ -14,10 +14,10 @@ import CharacterPage from "@pages/CharacterPage";
 import CharacterEditPage from "@pages/CharacterEditPage";
 import NotFound from "@pages/NotFound";
 import LoginPage from "@pages/LoginPage";
-import { db } from "./db";
 import { useEffect, useState } from "react";
 import UnauthorizedPage from "@pages//UnauthorizedPage";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const MainRouter = createBrowserRouter(createRoutesFromElements(
     <Route path="/" errorElement={<ErrorPage />}>
@@ -49,6 +49,10 @@ function CharacterProtectionRoute() {
             } else {
                 setAuthorized(false);
             }
+        }).catch((error) => {
+            console.error(error);
+            setAuthorized(false);
+            toast.error('Could not verify character ownership');
         })
     }, [id]);
 

@@ -3,6 +3,7 @@ import { db } from '@utils/db'
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { AppContext } from "@/App";
+import { toast } from "react-toastify";
 
 export default function useCharacter(id){
     
@@ -14,6 +15,9 @@ export default function useCharacter(id){
     useEffect(() => {
         axios.get(`/characters/${id}`).then((response) => {
             updateState(response.data)
+        }).catch((error) => {
+            console.error(error)
+            toast.error('Failed to get character')
         })
     }, [id])
 
@@ -29,6 +33,9 @@ export default function useCharacter(id){
     function saveCharacter(){
         axios.put(`/characters/${id}`, Character).then(() => {
             getCharacterList()
+        }).catch((error) => {
+            console.error(error)
+            toast.error('Failed to save character changes')
         })
     }
 
@@ -38,6 +45,9 @@ export default function useCharacter(id){
             if (Number(routeId) === Number(id)){
                 navigate('/')
             }
+        }).catch((error) => {
+            console.error(error)
+            toast.error('Failed to delete character')
         })
     }
 

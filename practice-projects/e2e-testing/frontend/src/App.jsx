@@ -6,6 +6,7 @@ import AppNav from './components/AppFrame/AppNav';
 import { useEffect, createContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { toast, ToastContainer } from 'react-toastify';
 
 export const AppContext = createContext({});
 
@@ -32,6 +33,7 @@ export default function App() {
             setCharacterList(response.data)
         }).catch((error) => {
             console.error(error)
+            toast.error('Failed to get character list')
         })
     }
 
@@ -50,6 +52,7 @@ export default function App() {
                 <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
                     <Outlet />
                 </Box>
+                <ToastContainer />
             </Box>
         </AppContext.Provider>
     );

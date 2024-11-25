@@ -34,7 +34,6 @@ async def get_all_characters(creator: str = "", db: tuple[Cursor, Connection] = 
     return_characters = []
     for character in characters:
         return_characters.append(dict(character))
-    print(return_characters)
     return return_characters
 
 @router.post("")

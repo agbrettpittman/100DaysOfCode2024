@@ -11,6 +11,7 @@ import DrawerCharacterListItem from './DrawerCharacterListItem';
 import axios from 'axios';
 import { useEffect, useState, useContext } from 'react';
 import { AppContext } from '@/App';
+import { toast } from 'react-toastify';
 
 const drawerWidth = 240;
 
@@ -24,6 +25,9 @@ export default function AppNav() {
         }
         axios.post('/characters', newCharacter).then(() => {
             getCharacterList()
+        }).catch((error) => {
+            toast.error('Failed to create character')
+            console.error(error)
         })
     }
 
