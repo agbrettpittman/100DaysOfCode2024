@@ -76,3 +76,11 @@ export async function logoutOfApp(page){
     await LogoutButton.click();
     await page.waitForURL(`${host}login`)
 }
+
+export async function checkForToast(page, text, type){
+    const LocatorClass = (type) ? `Toastify__toast--${type}` : "Toastify__toast"
+    const ToastLocator = page.locator(`.${LocatorClass}`)
+    await ToastLocator.waitFor({ state: 'attached' })
+    const ToastText = await ToastLocator.innerText()
+    expect(ToastText).toBe(text)
+}

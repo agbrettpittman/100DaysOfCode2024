@@ -472,3 +472,26 @@ test('Authorization Works', async ({ page }) => {
     await page.waitForURL(host);
     expect(page.url()).toBe(host);
 })
+
+test('Failed to Create Toast Message Works', async ({ page }) => {
+    // intercept POST requests to /characters and return a 500 error
+    await initialActions(page)
+    await page.route('**/characters', (route, request) => {
+        if (request.method() === 'POST') {
+            route.fulfill({
+                status: 500,
+                contentType: 'application/json',
+                body: JSON.stringify({ error: 'Failed to create character' }),
+            });
+        } else {
+            route.continue();
+        }
+    });
+
+    // click the "New Character" button
+    await clickAddCharacterButton(page)
+    // verify the toast message
+    const ToastMessage = page.locator(".Toastify__toast--error")
+    await ToastMessage.waitFor({ state: 'attached' });
+    expect(await ToastMessage.textContent()).toBe("Failed to create character");
+})
