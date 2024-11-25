@@ -29,7 +29,9 @@ async def get_all_characters(creator: str = "", db: tuple[Cursor, Connection] = 
     where_statements = []
     if creator: where_statements.append(f"creator = :creator")
     where_clause = f"WHERE {' AND '.join(where_statements)}" if where_statements else ""
-    cursor.execute(f"SELECT * FROM characters {where_clause}", {"creator": creator})
+    cursor.execute(f'''
+        SELECT * FROM characters {where_clause} ORDER BY id DESC
+    ''', {"creator": creator})
     characters = cursor.fetchall()
     return_characters = []
     for character in characters:
