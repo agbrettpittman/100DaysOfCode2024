@@ -123,37 +123,27 @@ test('Clicking New Character Adds Characters', async ({ page }) => {
     const iterations = 3
 
     // Function to get the current number of characters and whether the "New Character" button is present
-    async function getDrawerItemCount(charactersExpected = 0){
-        const DrawerItemsLocator = page.locator(`${DrawerLocator} a`)
-
-        // If we expect characters, wait for the first character to appear
-        if (charactersExpected) {
-            await DrawerItemsLocator.first().waitFor({ state: 'attached' });
+    async function getDrawerNames(expectedCount = 0){
+        const CurrentDrawerItmes = await getDrawerItems(page, expectedCount)
+        let CurrentDrawerCharacterNames = []
+        for (let i = 0; i < CurrentDrawerItmes.length; i++) {
+            CurrentDrawerCharacterNames.push(await CurrentDrawerItmes[i].textContent())
         }
-
-        // Get the text of all the characters
-        const characterTexts = await DrawerItemsLocator.allTextContents();
-
-        // run assertions
-        if (charactersExpected) {
-            expect(characterTexts.length).toBe(charactersExpected)
-        }
-
-        return characterTexts
+        return CurrentDrawerCharacterNames
     }
 
     // Run initial check
-    const InitialChracters = await getDrawerItemCount()
-    let lastCharacterList = InitialChracters
-
+    let InitialDrawerCharacterNames = await getDrawerNames()
+    let lastCharacterList = InitialDrawerCharacterNames
     // Click the "New Character" button multiple times and check the number of characters
     for (let i = 1; i <= iterations; i++) {
         await clickAddCharacterButton(page)
-        const NewCount = InitialChracters.length + i
-        let newChracterList = await getDrawerItemCount(NewCount)
+        const NewCount = InitialDrawerCharacterNames.length + i
+        let newChracterList = await getDrawerNames(NewCount)
         // check if the first character in the new list exists in the last list
         const firstCharacter = newChracterList[0]
         expect(lastCharacterList).not.toContain(firstCharacter)
+        lastCharacterList = newChracterList
     }
 
 });
