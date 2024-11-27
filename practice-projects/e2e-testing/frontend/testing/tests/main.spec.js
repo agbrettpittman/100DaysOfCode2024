@@ -1,6 +1,6 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
-import { host, addCharacterAndNavigate, clickAddCharacterButton, DrawerLocator, getDrawerItems, initialActions, logoutOfApp } from '../testUtils';
+import { host, addCharacterAndNavigate, clickAddCharacterButton, DrawerLocator, getDrawerItems, initialActions, logoutOfApp, checkForToast, deleteCharacter } from '../testUtils';
 import moment from 'moment';
 
 test('Tab Name is Correct', async ({ page }) => {
@@ -413,19 +413,17 @@ test('Delete Button Works', async ({ page }) => {
         InitialDrawerCharacterNames.push(await InitialDrawerItems[i].textContent())
     }
 
-    // delete the character
-    const DeleteButton = page.locator(`main header button:has(svg[data-testid='DeleteIcon'])`);
-    // click the delete button and hold it for the required time plus a little extra so the browser doesn't let go too early
-    const RequiredTime = 1000
-    const HoldTime = RequiredTime + 500
-    await DeleteButton.click({ delay: HoldTime })
+    deleteCharacter(page)
 
     // wait to be navigated back to the home page
     await page.waitForURL(host);
+    await page.waitForSelector("main h2")
+
     // verify the character is deleted in the drawer
     const NewDrawerItems = await getDrawerItems(page)
     let NewDrawerCharacterNames = []
     for (let i = 0; i < NewDrawerItems.length; i++) {
+        console.log(await NewDrawerItems[i])
         NewDrawerCharacterNames.push(await NewDrawerItems[i].textContent())
     }
     expect(NewDrawerCharacterNames).not.toContain(CharacterName)
@@ -463,6 +461,45 @@ test('Authorization Works', async ({ page }) => {
     expect(page.url()).toBe(host);
 })
 
+test('Failed to Get Character List Toast Message Works', async ({ page }) => {
+    // intercept GET requests to /characters and return a 500 error
+    await page.route('**/characters**', (route) => {
+        route.fulfill({
+            status: 500,
+            contentType: 'application/json',
+            body: JSON.stringify({ error: 'Failed to get character list' }),
+        });
+    });
+    await initialActions(page)
+
+    // verify the toast message
+    await checkForToast(page, "Failed to get character list", "error")
+})
+
+test('Failed to Verify Ownership Toast Message Works', async ({ page }) => {
+    // intercept GET requests to /characters/:id and return a 500 error
+    await page.route(/\/characters\/\d+/, (route) => {
+        if (route.request().method() === 'GET') {
+            route.fulfill({
+                status: 500,
+                contentType: 'application/json',
+                body: JSON.stringify({ error: 'Failed to get character' }),
+            });
+        } else {
+            route.continue();
+        }
+
+    });
+
+    await initialActions(page)
+
+    // add a new character and navigate to the character page
+    await addCharacterAndNavigate(page, { waitForCharacterName: false })
+
+    // verify the toast message
+    await checkForToast(page, "Could not verify character ownership", "error")
+})
+
 test('Failed to Create Toast Message Works', async ({ page }) => {
     // intercept POST requests to /characters and return a 500 error
     await initialActions(page)
@@ -481,7 +518,60 @@ test('Failed to Create Toast Message Works', async ({ page }) => {
     // click the "New Character" button
     await clickAddCharacterButton(page)
     // verify the toast message
-    const ToastMessage = page.locator(".Toastify__toast--error")
-    await ToastMessage.waitFor({ state: 'attached' });
-    expect(await ToastMessage.textContent()).toBe("Failed to create character");
+    await checkForToast(page, "Failed to create character", "error")
+})
+
+test('Failed to Save Toast Message Works', async ({ page }) => {
+    await page.route(/\/characters\/\d+/, (route, request) => {
+        if (request.method() === 'PUT') {
+            route.fulfill({
+                status: 500,
+                contentType: 'application/json',
+                body: JSON.stringify({ error: 'Failed to save character' }),
+            });
+        } else {
+            route.continue();
+        }
+    });
+
+    await initialActions(page)
+    await addCharacterAndNavigate(page)
+
+    // click the "Edit" button
+    const EditButton = page.locator(`main header a[href$="/edit"]`);
+    await EditButton.click();
+
+    // change the character name
+    const NameInput = page.locator(`input[name="name"]`);
+    await NameInput.fill("New Name")
+
+    // click the "Save" button
+    const SaveButton = page.locator(`main button:has-text("Save")`);
+    await SaveButton.click();
+
+    // verify the toast message
+    await checkForToast(page, "Failed to save character changes", "error")
+})
+
+test('Failed to Delete Toast Message Works', async ({ page }) => {
+    await page.route(/\/characters\/\d+/, (route, request) => {
+        if (request.method() === 'DELETE') {
+            route.fulfill({
+                status: 500,
+                contentType: 'application/json',
+                body: JSON.stringify({ error: 'Failed to delete character' }),
+            });
+        } else {
+            route.continue();
+        }
+    });
+
+    await initialActions(page)
+    await addCharacterAndNavigate(page)
+
+    // click the "Delete" button
+    await deleteCharacter(page)
+
+    // verify the toast message
+    await checkForToast(page, "Failed to delete character", "error")
 })

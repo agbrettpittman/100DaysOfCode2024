@@ -1,3 +1,5 @@
+import { expect } from "@playwright/test";
+
 export const host = "http://localhost:5173/";
 
 export const DrawerLocator = ".MuiDrawer-root .MuiList-root"
@@ -35,7 +37,7 @@ export async function getDrawerItems(page, charactersExpected = 0){
     return Items
 }
 
-export async function addCharacterAndNavigate(page){
+export async function addCharacterAndNavigate(page, { waitForCharacterName = true } = {}){
 
     async function getDrawerHrefList(Items){
         return await Promise.all(Items.map(async item => {
@@ -68,7 +70,9 @@ export async function addCharacterAndNavigate(page){
 
     await page.waitForURL(host + newCharacterHref)
     // wait for the character name to load
-    await page.waitForSelector("main h1")
+    if (waitForCharacterName) {
+        await page.waitForSelector("main h1")
+    }
 }
 
 export async function logoutOfApp(page){
@@ -80,7 +84,22 @@ export async function logoutOfApp(page){
 export async function checkForToast(page, text, type){
     const LocatorClass = (type) ? `Toastify__toast--${type}` : "Toastify__toast"
     const ToastLocator = page.locator(`.${LocatorClass}`)
-    await ToastLocator.waitFor({ state: 'attached' })
-    const ToastText = await ToastLocator.innerText()
-    expect(ToastText).toBe(text)
+    // wait for the first toast to be attached
+    await ToastLocator.first().waitFor({ state: 'attached' })
+    // get the text of all the toasts
+    const AllToasts = await ToastLocator.all()
+    const ToastTexts = await Promise.all(AllToasts.map(async toast => {
+        return await toast.textContent()
+    }))
+    // check if the text is in the toast
+    expect(ToastTexts).toContain(text)
+}
+
+export async function deleteCharacter(page){
+    // delete the character
+    const DeleteButton = page.locator(`main header button:has(svg[data-testid='DeleteIcon'])`);
+    // click the delete button and hold it for the required time plus a little extra so the browser doesn't let go too early
+    const RequiredTime = 1000
+    const HoldTime = RequiredTime + 500
+    await DeleteButton.click({ delay: HoldTime })
 }
