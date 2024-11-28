@@ -24,7 +24,7 @@ export default function AppNav() {
             creator: localStorage.getItem('username')
         }
         axios.post('/rooms', newCharacter).then(() => {
-            getCharacterList()
+            getRoomList()
         }).catch((error) => {
             toast.error('Failed to create character')
             console.error(error)

@@ -33,7 +33,7 @@ export default function App() {
             setRoomList(response.data)
         }).catch((error) => {
             console.error(error)
-            toast.error('Failed to get character list')
+            toast.error('Failed to get room list')
         })
     }
 
