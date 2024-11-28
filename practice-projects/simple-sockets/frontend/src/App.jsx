@@ -27,9 +27,7 @@ export default function App() {
     }, [])
     
     async function getRoomList() {
-        const creator = localStorage.getItem('username')
-        const params = { creator }
-        axios.get('/rooms', { params }).then((response) => {
+        axios.get('/rooms').then((response) => {
             setRoomList(response.data)
         }).catch((error) => {
             console.error(error)

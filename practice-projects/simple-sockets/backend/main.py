@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from .routers import characters
+from .routers import rooms
 from fastapi.middleware.cors import CORSMiddleware
 from .database.db import initialize_database
 
@@ -19,7 +19,7 @@ app.add_middleware(
 
 initialize_database()
 
-app.include_router(characters.router)
+app.include_router(rooms.router)
 
 
 @app.get("/")

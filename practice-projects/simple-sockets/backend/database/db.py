@@ -18,18 +18,11 @@ def initialize_database():
     try:
         cursor = db.cursor()
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS characters (
+            CREATE TABLE IF NOT EXISTS rooms (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 creationDate TEXT DEFAULT CURRENT_TIMESTAMP,
-                creator TEXT NOT NULL,
                 name TEXT NOT NULL,
-                description TEXT,
-                heightFeet INTEGER,
-                heightInches INTEGER,
-                weight INTEGER,
-                age INTEGER,
-                primaryWeapon TEXT,
-                secondaryWeapon TEXT
+                description TEXT
             )
         ''')
         db.commit()
