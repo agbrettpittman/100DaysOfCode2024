@@ -30,7 +30,7 @@ export default function useRoom(id){
     }
 
     function saveRoom(){
-        axios.put(`/room/${id}`, Character).then(() => {
+        axios.put(`/rooms/${id}`, Room).then(() => {
             getRoomList()
         }).catch((error) => {
             console.error(error)
@@ -39,7 +39,7 @@ export default function useRoom(id){
     }
 
     function deleteRoom(){
-        axios.delete(`/characters/${id}`).then(() => {
+        axios.delete(`/rooms/${id}`).then(() => {
             getRoomList()
             if (Number(routeId) === Number(id)){
                 navigate('/')

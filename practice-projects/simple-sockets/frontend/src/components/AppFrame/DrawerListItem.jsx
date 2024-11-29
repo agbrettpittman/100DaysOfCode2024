@@ -15,7 +15,7 @@ export default function DrawerListItem({room}) {
     const {id: routeId} = useParams()
     const { id, name } = room
     const selected = id === Number(routeId)
-    const hrefTo = `/room/${id}`
+    const hrefTo = `/rooms/${id}`
 
     return (
         <ListItem key={id} disablePadding button component={Link} to={hrefTo} sx={{ color: 'inherit'}} >

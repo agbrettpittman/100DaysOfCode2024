@@ -21,7 +21,7 @@ const LoginPage = () => {
     return (
         <Box maxWidth="sm" display="flex" flexDirection="column" gap={2} alignItems="center" margin="auto" marginTop={20}>
             <Typography variant="h3" component="h1" gutterBottom align="center" fontWeight="light">
-                Layer of the Ancients
+                Who Won That?
             </Typography>
             <Box display="flex" flexDirection="row" gap={2} alignItems="center" width="30rem">
                 <TextField
