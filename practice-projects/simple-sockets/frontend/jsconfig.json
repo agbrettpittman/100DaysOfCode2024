@@ -3,7 +3,7 @@
         "baseUrl": ".",
         "paths": {
             "@pages/*": [
-                "src/pages*"
+                "src/pages/*"
             ],
             "@utils/*": [
                 "src/utils/*"
