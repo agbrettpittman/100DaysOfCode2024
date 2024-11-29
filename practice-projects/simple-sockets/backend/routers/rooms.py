@@ -46,7 +46,9 @@ async def get_room(id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
     character = cursor.fetchone()
     if not character:
         raise HTTPException(status_code=404, detail="Room not found")
-    return dict(character)
+    return_dict = dict(character)
+    return_dict["candidates"] = []
+    return return_dict
     
 
 @router.put("/{id}")

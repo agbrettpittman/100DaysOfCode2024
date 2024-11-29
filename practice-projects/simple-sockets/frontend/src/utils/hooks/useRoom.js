@@ -6,7 +6,12 @@ import { toast } from "react-toastify";
 
 export default function useRoom(id){
     
-    const [Room, updateState] = useState({})
+    const [Room, updateState] = useState({
+        name: '',
+        description: '',
+        creationDate: '',
+        candidates: []
+    })
     const {id: routeId} = useParams()
     const navigate = useNavigate()
     const { getRoomList } = useContext(AppContext)

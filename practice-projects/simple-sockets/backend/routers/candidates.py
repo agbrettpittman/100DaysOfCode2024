@@ -49,7 +49,8 @@ async def get_candidate(id: int, db: tuple[Cursor, Connection] = Depends(get_db)
     candidate = cursor.fetchone()
     if not candidate:
         raise HTTPException(status_code=404, detail="Candidate not found")
-    return dict(candidate)
+    return_dict = dict(candidate)
+    return return_dict
 
 @router.put("/{id}")
 async def update_candidate(id: int, candidate: CandidateModel, db: tuple[Cursor, Connection] = Depends(get_db)):
