@@ -33,7 +33,7 @@ async def create_room(room: RoomModel, db: tuple[Cursor, Connection] = Depends(g
     room["id"] = cursor.lastrowid
     # if the name was null, set it to "Character {id}"
     if room["name"] == "" or room["name"] is None:
-        room["name"] = f"Room {character['id']}"
+        room["name"] = f"Room {room['id']}"
         cursor.execute("UPDATE rooms SET name = :name WHERE id = :id", room)
     conn.commit()
     return room
