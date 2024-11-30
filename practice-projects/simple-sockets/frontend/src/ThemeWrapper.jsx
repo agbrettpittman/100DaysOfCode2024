@@ -6,7 +6,7 @@ import { Outlet } from 'react-router-dom';
 
 export const ColorModeContext = createContext({ toggleColorMode: () => {} });
 const primaryMain = '#e33737'
-const secondaryMain = '#fdcc9c'
+const secondaryMain = '#59adff'
 const LightThemeOptions = {
     palette: {
         mode: 'light',
