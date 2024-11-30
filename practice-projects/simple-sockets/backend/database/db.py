@@ -35,7 +35,17 @@ def initialize_database():
                 name TEXT NOT NULL,
                 title TEXT NOT NULL
             )
-        ''')   
+        ''')  
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS room_candidates (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                room_id INTEGER NOT NULL,
+                candidate_id INTEGER NOT NULL,
+                votes INTEGER DEFAULT 0,
+                FOREIGN KEY (room_id) REFERENCES rooms(id),
+                FOREIGN KEY (candidate_id) REFERENCES candidates(id)
+            )
+        ''') 
         db.commit()
     except Exception as e:
         print(e)

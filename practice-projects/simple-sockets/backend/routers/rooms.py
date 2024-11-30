@@ -48,6 +48,15 @@ async def get_room(id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Room not found")
     return_dict = dict(character)
     return_dict["candidates"] = []
+    candidates_query = '''
+        SELECT candidates.id, candidates.name, candidates.title, room_candidates.votes
+        FROM candidates
+        JOIN room_candidates ON candidates.id = room_candidates.candidate_id
+        WHERE room_candidates.room_id = :id
+    '''
+    cursor.execute(candidates_query, {"id": id})
+    candidates = cursor.fetchall()
+    return_dict["candidates"] = [dict(candidate) for candidate in candidates]
     return return_dict
     
 
@@ -69,3 +78,25 @@ async def delete_room(id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
     cursor.execute("DELETE FROM rooms WHERE id = :id", {"id": id})
     conn.commit()
     return {"message": "Room deleted successfully"}
+
+@router.post("/{id}/candidates/{candidate_id}")
+async def add_candidate_to_room(id: int, candidate_id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
+    cursor, conn = db
+    cursor.execute("SELECT * FROM rooms WHERE id = :id", {"id": id})
+    room = cursor.fetchone()
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
+    cursor.execute("SELECT * FROM candidates WHERE id = :id", {"id": candidate_id})
+    candidate = cursor.fetchone()
+    if not candidate:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+    cursor.execute("INSERT INTO room_candidates (room_id, candidate_id) VALUES (:room_id, :candidate_id)", {"room_id": id, "candidate_id": candidate_id})
+    conn.commit()
+    return {"message": "Candidate added to room successfully"}
+
+@router.delete("/{id}/candidates/{candidate_id}")
+async def remove_candidate_from_room(id: int, candidate_id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
+    cursor, conn = db
+    cursor.execute("DELETE FROM room_candidates WHERE room_id = :room_id AND candidate_id = :candidate_id", {"room_id": id, "candidate_id": candidate_id})
+    conn.commit()
+    return {"message": "Candidate removed from room successfully"}
