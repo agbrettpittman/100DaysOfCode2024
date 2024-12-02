@@ -48,6 +48,7 @@ function HoldIconButton({color = "", hoverColor = "", onComplete = () => {}, spe
     const [ConfirmationPercentage, setConfirmationPercentage] = useState(0)
     const [ButtonClicked, setButtonClicked] = useState(false)
     const ConfirmationInterval = useRef(null)
+    const onCompleteTriggered = useRef(false)
     const ActiveColor = hoverColor || color
 
     useEffect(() => {
@@ -57,10 +58,12 @@ function HoldIconButton({color = "", hoverColor = "", onComplete = () => {}, spe
         if (ButtonClicked){
             ConfirmationInterval.current = setInterval(() => {
                 setConfirmationPercentage((prev) => {
-                    if (prev > 100){
+                    if (prev == 101 && !onCompleteTriggered.current){
+                        console.log(prev)
                         clearInterval(ConfirmationInterval.current)
                         setButtonClicked(false)
                         onComplete()
+                        onCompleteTriggered.current = true
                         return 0
                     }
                     return prev + 1
@@ -68,6 +71,7 @@ function HoldIconButton({color = "", hoverColor = "", onComplete = () => {}, spe
             }, speed)
         } else {
             // if ConfirmationPercentage is not 0, gradually decrease it
+            onCompleteTriggered.current = false
             if (ConfirmationPercentage > 0){
                 ConfirmationInterval.current = setInterval(() => {
                     setConfirmationPercentage((prev) => {
@@ -87,7 +91,7 @@ function HoldIconButton({color = "", hoverColor = "", onComplete = () => {}, spe
     const IconButtonSX = {
         color: color,
         "&:hover": {color: ActiveColor},
-    }
+    } 
 
     return (
         <StyledIconButton 
