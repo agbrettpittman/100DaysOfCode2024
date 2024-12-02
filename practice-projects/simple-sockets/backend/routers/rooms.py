@@ -100,3 +100,77 @@ async def remove_candidate_from_room(id: int, candidate_id: int, db: tuple[Curso
     cursor.execute("DELETE FROM room_candidates WHERE room_id = :room_id AND candidate_id = :candidate_id", {"room_id": id, "candidate_id": candidate_id})
     conn.commit()
     return {"message": "Candidate removed from room successfully"}
+
+@router.post("/{id}/candidates/{candidate_id}/vote")
+async def vote_for_candidate(id: int, candidate_id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
+    cursor, conn = db
+    cursor.execute("SELECT * FROM rooms WHERE id = :id", {"id": id})
+    room = cursor.fetchone()
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
+    cursor.execute("SELECT * FROM candidates WHERE id = :id", {"id": candidate_id})
+    candidate = cursor.fetchone()
+    if not candidate:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+    cursor.execute('''
+        SELECT * FROM room_candidates 
+        WHERE 
+            room_id = :room_id 
+            AND candidate_id = :candidate_id
+    ''', {"room_id": id, "candidate_id": candidate_id})
+    room_candidate = cursor.fetchone()
+    if not room_candidate:
+        raise HTTPException(status_code=404, detail="Candidate not found in room")
+    cursor.execute('''
+        UPDATE room_candidates 
+        SET votes = votes + 1 
+        WHERE 
+            room_id = :room_id 
+            AND candidate_id = :candidate_id
+    ''', {"room_id": id, "candidate_id": candidate_id})
+    conn.commit()
+    return {"message": "Vote added successfully"}
+
+@router.delete("/{id}/candidates/{candidate_id}/vote")
+async def remove_vote_for_candidate(id: int, candidate_id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
+    cursor, conn = db
+    cursor.execute("SELECT * FROM rooms WHERE id = :id", {"id": id})
+    room = cursor.fetchone()
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
+    cursor.execute("SELECT * FROM candidates WHERE id = :id", {"id": candidate_id})
+    candidate = cursor.fetchone()
+    if not candidate:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+    cursor.execute('''
+        SELECT * FROM room_candidates 
+        WHERE 
+            room_id = :room_id 
+            AND candidate_id = :candidate_id
+    ''', {"room_id": id, "candidate_id": candidate_id})
+    room_candidate = cursor.fetchone()
+    if not room_candidate:
+        raise HTTPException(status_code=404, detail="Candidate not found in room")
+    # verify that the vote count is not already 0
+    cursor.execute('''
+        SELECT votes FROM room_candidates 
+        WHERE 
+            room_id = :room_id 
+            AND candidate_id = :candidate_id
+    ''', {"room_id": id, "candidate_id": candidate_id})
+    votes = cursor.fetchone()
+    if votes["votes"] == 0:
+        raise HTTPException(status_code=400, detail="Vote count is already 0")
+    
+    cursor.execute('''
+        UPDATE room_candidates 
+        SET votes = CASE 
+            WHEN votes - 1 < 0 THEN 0 
+            ELSE votes - 1 
+        END
+        WHERE 
+            room_id = :room_id 
+            AND candidate_id = :candidate_id
+    ''', {"room_id": id, "candidate_id": candidate_id})
+    conn.commit()
+    return {"message": "Vote removed successfully"}

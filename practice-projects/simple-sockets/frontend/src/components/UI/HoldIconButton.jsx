@@ -44,7 +44,7 @@ const StyledIconButton = styled(IconButton)`
  *
  * @returns {JSX.Element} The rendered HoldIconButton component.
  */
-function HoldIconButton({color = "", hoverColor = "", onComplete = () => {}, speed = 10, children, ...otherProps}) {
+function HoldIconButton({color = "", hoverColor = "", onComplete = () => {}, speed = 10, children, disabled, ...otherProps}) {
     const [ConfirmationPercentage, setConfirmationPercentage] = useState(0)
     const [ButtonClicked, setButtonClicked] = useState(false)
     const ConfirmationInterval = useRef(null)
@@ -55,7 +55,7 @@ function HoldIconButton({color = "", hoverColor = "", onComplete = () => {}, spe
         // if the button is clicked, gradually increase the border coverage
         // to create a circular border growing effect
         ConfirmationInterval.current = null
-        if (ButtonClicked){
+        if (ButtonClicked && !disabled){
             ConfirmationInterval.current = setInterval(() => {
                 setConfirmationPercentage((prev) => {
                     if (prev == 101 && !onCompleteTriggered.current){
@@ -91,7 +91,12 @@ function HoldIconButton({color = "", hoverColor = "", onComplete = () => {}, spe
     const IconButtonSX = {
         color: color,
         "&:hover": {color: ActiveColor},
-    } 
+    }
+
+    const AggregatedOtherProps = {
+        disabled: disabled,
+        ...otherProps
+    }
 
     return (
         <StyledIconButton 
@@ -100,7 +105,7 @@ function HoldIconButton({color = "", hoverColor = "", onComplete = () => {}, spe
             onMouseDown={() => setButtonClicked(true)}
             onMouseUp={() => setButtonClicked(false)}
             confirmationColor={ActiveColor}
-            {...otherProps}
+            {...AggregatedOtherProps}
         >
             {children}
         </StyledIconButton>

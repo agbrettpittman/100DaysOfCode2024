@@ -45,7 +45,7 @@ def initialize_database():
                 FOREIGN KEY (room_id) REFERENCES rooms(id),
                 FOREIGN KEY (candidate_id) REFERENCES candidates(id)
             )
-        ''') 
+        ''')
         db.commit()
     except Exception as e:
         print(e)

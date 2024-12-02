@@ -17,13 +17,17 @@ export default function useRoom(id){
     const { getRoomList } = useContext(AppContext)
 
     useEffect(() => {
+        getRoomData()
+    }, [id])
+
+    function getRoomData(){
         axios.get(`/rooms/${id}`).then((response) => {
             updateState(response.data)
         }).catch((error) => {
             console.error(error)
             toast.error('Failed to get room')
         })
-    }, [id])
+    }
 
     function setRoom(key, value){
         updateState((prevState) => {
@@ -55,6 +59,6 @@ export default function useRoom(id){
         })
     }
 
-    return { Room, setRoom, deleteRoom, saveRoom }
+    return { Room, setRoom, deleteRoom, saveRoom, getRoomData }
 
 }
