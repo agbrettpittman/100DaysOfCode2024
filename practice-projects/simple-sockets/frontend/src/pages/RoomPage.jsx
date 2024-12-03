@@ -7,7 +7,7 @@ import { ThumbUp, ThumbDown } from '@mui/icons-material'
 import { toast } from 'react-toastify'
 import { transparentize } from 'polished'
 import axios from 'axios'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 
 export default function RoomPage() {
     const { id } = useParams()
@@ -17,6 +17,7 @@ export default function RoomPage() {
     const DisplayCreation = moment(Room.creationDate).format('MMMM Do YYYY, h:mm:ss a')
     const InitialUpIconColor = transparentize(0.5, Theme.palette.info.main)
     const InitialDownIconColor = transparentize(0.5, Theme.palette.error.main)
+    const DisableInterval = useRef(null)
 
     function castVote(candidate, vote){
         if (!candidate || ['up', 'down'].indexOf(vote) === -1){
@@ -24,13 +25,16 @@ export default function RoomPage() {
             return
         }
         let method = (vote === 'up') ? 'post' : 'delete'
+        if (DisableInterval.current) return
         axios.request({
             url: `/rooms/${id}/candidates/${candidate.id}/vote`,
             method: method
         }).then(() => {
             setDisableVoting(true)
-            setInterval(() => {
+            DisableInterval.current = setTimeout(() => {
                 setDisableVoting(false)
+                clearInterval(DisableInterval.current)
+                DisableInterval.current = null
             }, 5000)
             toast.success(`${vote} vote cast for ${candidate.name}`)
             getRoomData()
