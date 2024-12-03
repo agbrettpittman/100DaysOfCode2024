@@ -7,7 +7,8 @@ import { ThumbUp, ThumbDown } from '@mui/icons-material'
 import { toast } from 'react-toastify'
 import { transparentize } from 'polished'
 import axios from 'axios'
-import { useState, useRef } from 'react'
+import { useState, useRef, Fragment } from 'react'
+import PercentBar from '@/components/UI/PercentBar'
 
 export default function RoomPage() {
     const { id } = useParams()
@@ -18,6 +19,7 @@ export default function RoomPage() {
     const InitialUpIconColor = transparentize(0.5, Theme.palette.info.main)
     const InitialDownIconColor = transparentize(0.5, Theme.palette.error.main)
     const DisableInterval = useRef(null)
+    const TotalVotes = Room.candidates.reduce((acc, candidate) => acc + candidate.votes, 0)
 
     function castVote(candidate, vote){
         if (!candidate || ['up', 'down'].indexOf(vote) === -1){
@@ -35,7 +37,7 @@ export default function RoomPage() {
                 setDisableVoting(false)
                 clearInterval(DisableInterval.current)
                 DisableInterval.current = null
-            }, 5000)
+            }, 1000)
             toast.success(`${vote} vote cast for ${candidate.name}`)
             getRoomData()
         }).catch((error) => {
@@ -59,30 +61,39 @@ export default function RoomPage() {
             <Typography variant="body1" component="p" color="textSecondary">{Room.description}</Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2}}>
                 <Typography variant="h4" component="h2">Candidates</Typography>
-                {Room.candidates.map((candidate, index) => (
-                    <Box key={index} sx={{ display: 'flex', flexDirection: 'row', gap: 1, alignItems: 'center' }}>
-                        <Typography variant="body1">{candidate.votes}</Typography>
-                        <HoldIconButton 
-                            onComplete={() => castVote(candidate, 'up')} 
-                            color={InitialUpIconColor} 
-                            hoverColor={Theme.palette.info.main}
-                            disabled={DisableVoting}
-                        >
-                            <ThumbUp />
-                        </HoldIconButton>
-                        <HoldIconButton 
-                            onComplete={() => castVote(candidate, 'down')}
-                            color={InitialDownIconColor}
-                            hoverColor={Theme.palette.error.main}
-                            disabled={DisableVoting}
-                        >
-                            <ThumbDown />
-                        </HoldIconButton>
-                        <Typography variant="body1">{candidate.name}</Typography>
-                        <Divider orientation="vertical" flexItem />
-                        <Typography variant="body2" color="textSecondary">{candidate.title}</Typography>
-                    </Box>
-                ))}
+                {Room.candidates.map((candidate, index) => {
+                    const VotePercent = TotalVotes > 0 ? (candidate.votes / TotalVotes) * 100 : 0
+                    return (
+                        <Fragment key={index}>
+                            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, alignItems: 'center' }}>
+                                <Typography variant="body1">{candidate.votes}</Typography>
+                                <HoldIconButton 
+                                    onComplete={() => castVote(candidate, 'up')} 
+                                    color={InitialUpIconColor} 
+                                    hoverColor={Theme.palette.info.main}
+                                    disabled={DisableVoting}
+                                >
+                                    <ThumbUp />
+                                </HoldIconButton>
+                                <HoldIconButton 
+                                    onComplete={() => castVote(candidate, 'down')}
+                                    color={InitialDownIconColor}
+                                    hoverColor={Theme.palette.error.main}
+                                    disabled={DisableVoting}
+                                >
+                                    <ThumbDown />
+                                </HoldIconButton>
+                                <Typography variant="body1">{candidate.name}</Typography>
+                                <Divider orientation="vertical" flexItem />
+                                <Typography variant="body2" color="textSecondary">{candidate.title}</Typography>
+                            </Box>
+                            <PercentBar text={
+                                `${VotePercent.toFixed(2)}% (${candidate.votes})`
+                            } percent={VotePercent} />
+                        </Fragment>
+
+                    )
+                })}
             </Box>
         </Box>
     )
