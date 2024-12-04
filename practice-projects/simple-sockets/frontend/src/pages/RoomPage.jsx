@@ -27,32 +27,40 @@ export default function RoomPage() {
 
         // On message received
         socket.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            setRoom(prevValue => {
-                return {
-                    ...prevValue,
-                    candidates: prevValue.candidates.map(candidate => {
-                        if (candidate.id === data.candidate_id){
-                            return {
-                                ...candidate,
-                                votes: data.votes
-                            }
-                        }
-                        return candidate
-                    })
+            try{
+                const {type, message} = JSON.parse(event.data);
+                if (type === 'error'){
+                    toast.error(message)
+                    return
                 }
-            })
+                setRoom(prevValue => {
+                    return {
+                        ...prevValue,
+                        candidates: prevValue.candidates.map(candidate => {
+                            if (candidate.id === message.candidate_id){
+                                return {
+                                    ...candidate,
+                                    votes: message.votes
+                                }
+                            }
+                            return candidate
+                        })
+                    }
+                })
+            } catch (error) {
+                console.error(error)
+                toast.error('Failed to parse message from server')
+            }
         };
 
         // On WebSocket error
         socket.onerror = (error) => {
             console.error("WebSocket error:", error);
+            toast.error('Error connecting to server')
         };
 
         // On WebSocket close
-        socket.onclose = () => {
-            console.log("WebSocket closed");
-        };
+        socket.onclose = () => console.log("WebSocket closed");
 
         // Store socket for sending messages
         setWebsocketConnection(socket);
@@ -83,7 +91,7 @@ export default function RoomPage() {
                     DisableInterval.current = null
                 }, 1000)
             } else {
-                toast.error('WebSocket connection is not open')
+                toast.error('Failed to connect to server')
             }
         } catch (error) {
             console.error(error)
