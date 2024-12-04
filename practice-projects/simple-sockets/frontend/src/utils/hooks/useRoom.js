@@ -59,6 +59,6 @@ export default function useRoom(id){
         })
     }
 
-    return { Room, setRoom, deleteRoom, saveRoom, getRoomData }
+    return { Room, setRoom, deleteRoom, saveRoom, getRoomData, updateState }
 
 }

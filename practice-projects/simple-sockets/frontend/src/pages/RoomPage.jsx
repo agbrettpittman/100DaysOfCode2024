@@ -3,48 +3,92 @@ import moment from 'moment'
 import useRoom from '@utils/hooks/useRoom'
 import { Typography, Box, Divider, useTheme} from '@mui/material'
 import HoldIconButton from '@/components/UI/HoldIconButton'
-import { ThumbUp, ThumbDown } from '@mui/icons-material'
+import { ThumbUp, ThumbDown, Web } from '@mui/icons-material'
 import { toast } from 'react-toastify'
 import { transparentize } from 'polished'
-import axios from 'axios'
-import { useState, useRef, Fragment } from 'react'
+import { useState, useRef, Fragment, useEffect } from 'react'
 import PercentBar from '@/components/UI/PercentBar'
 
 export default function RoomPage() {
     const { id } = useParams()
-    const { Room, getRoomData } = useRoom(id)
+    const { Room, updateState:setRoom } = useRoom(id)
     const Theme = useTheme()
     const [DisableVoting, setDisableVoting] = useState(false)
+    const [WebsocketConnection, setWebsocketConnection] = useState(null)
     const DisplayCreation = moment(Room.creationDate).format('MMMM Do YYYY, h:mm:ss a')
     const InitialUpIconColor = transparentize(0.5, Theme.palette.info.main)
     const InitialDownIconColor = transparentize(0.5, Theme.palette.error.main)
     const DisableInterval = useRef(null)
     const TotalVotes = Room.candidates.reduce((acc, candidate) => acc + candidate.votes, 0)
 
+    useEffect(() => {
+        // Create WebSocket connection
+        const socket = new WebSocket(`ws://localhost:8000/rooms/ws/${id}`);
+
+        // On message received
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            setRoom(prevValue => {
+                return {
+                    ...prevValue,
+                    candidates: prevValue.candidates.map(candidate => {
+                        if (candidate.id === data.candidate_id){
+                            return {
+                                ...candidate,
+                                votes: data.votes
+                            }
+                        }
+                        return candidate
+                    })
+                }
+            })
+        };
+
+        // On WebSocket error
+        socket.onerror = (error) => {
+            console.error("WebSocket error:", error);
+        };
+
+        // On WebSocket close
+        socket.onclose = () => {
+            console.log("WebSocket closed");
+        };
+
+        // Store socket for sending messages
+        setWebsocketConnection(socket);
+
+        // Cleanup on component unmount
+        return () => {
+            socket.close();
+        };
+    }, [id]);
+
     function castVote(candidate, vote){
         if (!candidate || ['up', 'down'].indexOf(vote) === -1){
             toast.error('Candidate and vote are required')
             return
         }
-        let method = (vote === 'up') ? 'post' : 'delete'
         if (DisableInterval.current) return
-        axios.request({
-            url: `/rooms/${id}/candidates/${candidate.id}/vote`,
-            method: method
-        }).then(() => {
-            setDisableVoting(true)
-            DisableInterval.current = setTimeout(() => {
-                setDisableVoting(false)
-                clearInterval(DisableInterval.current)
-                DisableInterval.current = null
-            }, 1000)
-            toast.success(`${vote} vote cast for ${candidate.name}`)
-            getRoomData()
-        }).catch((error) => {
+        try {
+            if (WebsocketConnection && WebsocketConnection.readyState === WebSocket.OPEN){
+                WebsocketConnection.send(JSON.stringify({
+                    type: 'vote',
+                    candidate: candidate.id,
+                    vote: vote
+                }))
+                setDisableVoting(true)
+                DisableInterval.current = setTimeout(() => {
+                    setDisableVoting(false)
+                    clearInterval(DisableInterval.current)
+                    DisableInterval.current = null
+                }, 1000)
+            } else {
+                toast.error('WebSocket connection is not open')
+            }
+        } catch (error) {
             console.error(error)
             toast.error('Failed to cast vote')
-        })
-
+        }
     }
 
     return (

@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, WebSocket
 from pydantic import BaseModel
 from sqlite3 import Connection, Cursor
 from ..database.db import get_db
+from ..socketHandlers.roomsId import handler as roomsIdSocketHandler
 
 router = APIRouter(
     prefix="/rooms",
@@ -9,7 +10,7 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-latest_id = 0
+roomsIdSocket = roomsIdSocketHandler()
 
 class RoomModel(BaseModel):
     name: str = ""
@@ -174,3 +175,7 @@ async def remove_vote_for_candidate(id: int, candidate_id: int, db: tuple[Cursor
     ''', {"room_id": id, "candidate_id": candidate_id})
     conn.commit()
     return {"message": "Vote removed successfully"}
+
+@router.websocket("/ws/{room_id}")
+async def websocket_endpoint(websocket: WebSocket, room_id: int):
+    await roomsIdSocket.handle_new_connection(websocket, room_id)
