@@ -43,15 +43,23 @@ export default function AppNav() {
             <Toolbar />
             <Box sx={{ overflow: 'auto' }}>
                 <List>
-                    <ListItem disablePadding>
-                        <ListItemButton sx={{ justifyContent: 'start', gap: 1 }} onClick={createRoom}>
-                            <ListItemIcon sx={{ minWidth: 0 }}>
-                                <Add />
-                            </ListItemIcon>
-                            <ListItemText primary="New Room" />
-                        </ListItemButton>
-                    </ListItem>
-                    <Divider />
+                    {localStorage.getItem('username') === 'admin' && (
+                        <>
+                            <ListItem disablePadding>
+                                <ListItemButton 
+                                    sx={{ justifyContent: 'start', gap: 1 }} 
+                                    onClick={createRoom}
+                                >
+                                    <ListItemIcon sx={{ minWidth: 0 }}>
+                                        <Add />
+                                    </ListItemIcon>
+                                    <ListItemText primary="New Room" />
+                                </ListItemButton>
+                            </ListItem>
+                            <Divider />
+                        </>
+                    )}
+                    
                     {RoomList.map((room) => (
                         <DrawerListItem key={room.id} room={room} />
                     ))}
