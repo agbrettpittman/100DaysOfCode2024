@@ -12,6 +12,10 @@ services:
       - ${API_LOCAL_PORT:-8000}:8000
     networks:
       - compose-network
+    environment:
+      - DB_PATH=/app/main.db
+    volumes:
+      - ${DB_VOLUME_PATH:-./main.db}:/app/main.db
 
   react:
     image: who-won-that_react
@@ -22,7 +26,8 @@ services:
     build:
       context: ./frontend
       args:
-        - VITE_APP_BACKEND=${VITE_APP_BACKEND:-http://localhost:8000}
+        - VITE_APP_HTTP_BACKEND=${VITE_APP_HTTP_BACKEND:-http://localhost:8000}
+        - VITE_APP_SOCKET_BACKEND=${VITE_APP_SOCKET_BACKEND:-ws://localhost:8000}
     ports:
       - ${FRONTEND_LOCAL_PORT:-80}:80
     networks:

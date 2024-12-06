@@ -1,5 +1,6 @@
 FROM node AS code
-ARG VITE_APP_BACKEND='http://localhost:8000'
+ARG VITE_APP_HTTP_BACKEND="http://localhost:8000"
+ARG VITE_APP_SOCKET_BACKEND="ws://localhost:8000"
 WORKDIR /app
 COPY package.json .
 RUN npm i

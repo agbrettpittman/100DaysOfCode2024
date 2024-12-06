@@ -23,7 +23,8 @@ export default function RoomPage() {
 
     useEffect(() => {
         // Create WebSocket connection
-        const socket = new WebSocket(`ws://localhost:8000/rooms/ws/${id}`);
+        const SocketBase = import.meta.env.VITE_APP_SOCKET_BACKEND
+        const socket = new WebSocket(`${SocketBase}/rooms/ws/${id}`);
 
         // On message received
         socket.onmessage = (event) => {
@@ -90,9 +91,7 @@ export default function RoomPage() {
                     clearInterval(DisableInterval.current)
                     DisableInterval.current = null
                 }, 1000)
-            } else {
-                toast.error('Failed to connect to server')
-            }
+            } else toast.error('Failed to connect to server')
         } catch (error) {
             console.error(error)
             toast.error('Failed to cast vote')

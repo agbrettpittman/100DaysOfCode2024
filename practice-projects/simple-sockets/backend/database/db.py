@@ -1,7 +1,8 @@
-import sqlite3, contextlib
+import sqlite3, contextlib, os
 from fastapi import Depends
 
-DATABASE_URL = "./database/main.db"  # Change this to :memory: for in-memory DB
+
+DATABASE_URL = os.getenv("DB_PATH") or ":memory:"
 
 def get_db():
     with contextlib.closing(sqlite3.connect(DATABASE_URL, check_same_thread=False)) as db:

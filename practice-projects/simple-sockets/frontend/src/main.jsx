@@ -9,7 +9,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import MainRouter from './utils/MainRouter';
 import axios from 'axios';
 
-axios.defaults.baseURL = 'http://localhost:8000'
+axios.defaults.baseURL = import.meta.env.VITE_APP_HTTP_BACKEND
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

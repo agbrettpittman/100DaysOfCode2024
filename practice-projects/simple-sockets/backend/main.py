@@ -1,13 +1,16 @@
+import os
 from fastapi import FastAPI
 from .routers import rooms, candidates
 from fastapi.middleware.cors import CORSMiddleware
 from .database.db import initialize_database
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI()
 
-origins = [
-    "http://localhost:3000",
-]
+env_origins = os.getenv("VALID_ORIGINS")
+origins = env_origins.split(",") if env_origins else []
 
 app.add_middleware(
     CORSMiddleware,
