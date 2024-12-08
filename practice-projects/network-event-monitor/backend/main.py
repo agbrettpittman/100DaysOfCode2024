@@ -7,8 +7,6 @@ from routers import events
 import os
 
 load_dotenv()
-# print environment variables
-print(os.getenv("DB_PATH"))
 app = FastAPI()
 env_origins = os.getenv("VALID_ORIGINS")
 origins = env_origins.split(",") if env_origins else []

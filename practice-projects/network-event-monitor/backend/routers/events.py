@@ -22,6 +22,7 @@ class EventModel(BaseModel):
     def validate_event_datetime(cls, value: str):
         try:
             if (value): datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+            return value
         except ValueError:
             raise ValueError("Invalid datetime format. Please use 'YYYY-MM-DD HH:MM:SS'")
 
@@ -73,13 +74,11 @@ async def get_event(id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
 @router.put("/{id}")
 async def update_character(id: int, event: EventModel, db: tuple[Cursor, Connection] = Depends(get_db)):
     cursor, conn = db
-    event = event.model_dump()
+    event = event.model_dump(exclude_unset=True)
     event["id"] = id
-    set_statements = []
-    for key in event:
-        if key != "id" and event[key] is not None:
-            set_statements.append(f"{key} = :{key}")
+    set_statements = [f"{key} = :{key}" for key in event if key != "id"]
     set_clause = ", ".join(set_statements)
+    print(set_clause)
     cursor.execute(f'''
         UPDATE events SET 
             {set_clause}

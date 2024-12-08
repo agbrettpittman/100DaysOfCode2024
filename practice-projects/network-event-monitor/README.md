@@ -1,0 +1,2 @@
+# Network Event Monitor
+This app is meant to help with troubleshooting and monitoring network events by allowing the user to define an event and setup different types of monitors (such as pings, port status checks, etc.)
