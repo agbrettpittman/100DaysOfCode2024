@@ -21,6 +21,10 @@ export default function LandingPage({}) {
         }
     })
 
+    function handleSelectSlot(slotInfo) {
+        console.log(slotInfo)
+    }
+
     return (
         <Box>
             <Calendar
@@ -30,6 +34,8 @@ export default function LandingPage({}) {
                 style={{ height: 500 }}
                 events={events}
                 onSelectEvent={(event) => navigate(`/events/${event.id}`)}
+                onSelectSlot={handleSelectSlot}
+                selectable
             /> 
         </Box>
     )
