@@ -49,7 +49,6 @@ export default function App() {
                 <Box sx={{ display: 'flex' }}>
                     <CssBaseline />
                     <MainAppBar />
-                    <DrawerNav />
                     <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
                         <ErrorBoundary FallbackComponent={ErrorPage}>
                             <Outlet />
