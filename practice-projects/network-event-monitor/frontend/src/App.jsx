@@ -10,6 +10,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import ErrorPage from '@pages/ErrorPage';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
+import moment from 'moment';
 
 export const AppContext = createContext({});
 
@@ -23,7 +24,13 @@ export default function App() {
     
     async function getEventList() {
         axios.get('/events').then((response) => {
-            setEventList(response.data)
+            const NewEvents = response.data.map((event) => {
+                return {
+                    ...event,
+                    eventDatetime: moment(event.eventDatetime)
+                }
+            })
+            setEventList(NewEvents)
         }).catch((error) => {
             console.error(error)
             toast.error('Failed to get event list')
