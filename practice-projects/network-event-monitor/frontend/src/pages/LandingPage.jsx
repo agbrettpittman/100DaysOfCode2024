@@ -1,15 +1,16 @@
 import { Box } from '@mui/material'
 import moment from 'moment'
 import { Calendar, momentLocalizer } from 'react-big-calendar'
-import React from 'react'
-import { useContext } from 'react'
+import { useContext, useState } from 'react'
 import { AppContext } from '@/App'
 import { useNavigate } from 'react-router-dom'
+import NewEvent from '@components/NewEvent'
 
 const localizer = momentLocalizer(moment)
 
 export default function LandingPage({}) {
     const { EventList } = useContext(AppContext)
+    const [DisplayEventForm, setDisplayEventForm] = useState(false)
     const navigate = useNavigate()
 
     const events = EventList.map((event) => {
@@ -34,9 +35,10 @@ export default function LandingPage({}) {
                 style={{ height: 500 }}
                 events={events}
                 onSelectEvent={(event) => navigate(`/events/${event.id}`)}
-                onSelectSlot={handleSelectSlot}
+                onSelectSlot={() => setDisplayEventForm(true)}
                 selectable
-            /> 
+            />
+            {DisplayEventForm && <NewEvent onClose={() => setDisplayEventForm(false)}/>}
         </Box>
     )
 }
