@@ -5,20 +5,34 @@ import { AppContext } from "@/App";
 import { toast } from "react-toastify";
 import moment from "moment";
 
-export default function useEvent(id) {
+const initialEvent = {
+    id: null,
+    eventName: '',
+    description: '',
+    referenceID: ''
+}
 
-    const [Event, updateState] = useState({
-        id: null,
-        eventDatetime: moment(),
-        eventName: '',
-        description: '',
-        referenceID: ''
-    })
+function getDefaultEvent(defaults){
+    const { eventDatetime: defaultEventDateTime, ...otherDefaults } = defaults
+    return {
+        ...initialEvent,
+        ...otherDefaults,
+        eventDatetime: defaultEventDateTime ? moment(defaultEventDateTime) : moment()
+    }
+}
+
+export default function useEvent(id = null, defaults = {}) {
+
+    const [Event, updateState] = useState(getDefaultEvent(defaults))
     const { id: routeId } = useParams()
     const navigate = useNavigate()
     const { getEventList } = useContext(AppContext)
 
     useEffect(() => {
+        if (!id) {
+            updateState(getDefaultEvent(defaults))
+            return
+        }
         axios.get(`/events/${id}`).then((response) => {
             let newState = {...response.data}
             newState.eventDatetime = moment(newState.eventDatetime)
@@ -27,7 +41,7 @@ export default function useEvent(id) {
             console.error(error)
             toast.error('Failed to get event')
         })
-    }, [id])
+    }, [id, defaults])
 
     function setEvent(key, value) {
         updateState((prevState) => {
@@ -39,12 +53,21 @@ export default function useEvent(id) {
     }
 
     function saveEvent() {
-        // replace the event datetime with a sql formatted string
-        const PostData = {
-            ...Event,
-            eventDatetime: Event.eventDatetime.format('YYYY-MM-DD HH:mm:ss')
+        /*
+            * Build the request configuration object so that it is a
+            * PUT request if the event has an ID, otherwise it is a POST request
+            * to create a new event. Also, format the eventDatetime to be in the
+            * correct format for the DB.
+         */
+        const RequestConfig = {
+            method: id ? 'put' : 'post',
+            url: id ? `/events/${id}` : '/events',
+            data: {
+                ...Event,
+                eventDatetime: Event.eventDatetime.format('YYYY-MM-DD HH:mm:ss')
+            }
         }
-        axios.put(`/events/${id}`, PostData).then(() => {
+        axios.request(RequestConfig).then(() => {
             getEventList()
             toast.success('Event changes saved')
         }).catch((error) => {
@@ -54,6 +77,11 @@ export default function useEvent(id) {
     }
 
     function deleteEvent() {
+        // If there is no ID, there is no event to delete
+        if (!id) {
+            toast.error('No event to delete')
+            return
+        }
         axios.delete(`/events/${id}`).then(() => {
             getEventList()
             if (Number(routeId) === Number(id)) {

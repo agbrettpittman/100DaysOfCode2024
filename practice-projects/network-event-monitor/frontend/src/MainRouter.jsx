@@ -12,7 +12,7 @@ import LandingPage from "@pages/LandingPage";
 import NotFoundPage from "@pages/NotFoundPage";
 import LoginPage from "@pages/LoginPage";
 import EventPage from "@pages/events/EventPage";
-import EventEdit from "@pages/events/EventEdit";
+import EventForm from "@components/EventForm";
 import { ErrorBoundary } from "react-error-boundary";
 
 const MainRouter = createBrowserRouter(createRoutesFromElements(
@@ -36,7 +36,7 @@ function RouteProtector() {
                         <Route index={true} element={<Navigate to="/" />} />
                         <Route path=":id">
                             <Route index={true} element={<EventPage />}/>
-                            <Route path="edit" element={<EventEdit />} />
+                            <Route path="edit" element={<EventForm />} />
                         </Route>
                     </Route>
                     <Route path="*" element={<NotFoundPage />} />

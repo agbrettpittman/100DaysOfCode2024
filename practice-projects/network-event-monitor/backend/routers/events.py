@@ -43,11 +43,13 @@ async def create_event(event: EventModel, db: tuple[Cursor, Connection] = Depend
     cursor, conn = db
     event = event.model_dump()
     # generate a random 4 character string to attach to the current date for the referenceID and event name
-    rando_str = "".join(random.choices(string.ascii_uppercase + string.digits, k=4))
-    short_date = datetime.now().strftime("%-y%-m%-d")
-    temp_ref = f"{short_date}.{rando_str}"
-    event["referenceID"] = temp_ref
-    event["eventName"] = f"Event {temp_ref}"
+    if (not event["referenceID"]):
+        rando_str = "".join(random.choices(string.ascii_uppercase + string.digits, k=4))
+        short_date = datetime.now().strftime("%-y%-m%-d")
+        temp_ref = f"{short_date}.{rando_str}"
+        event["referenceID"] = temp_ref
+    if (not event["eventName"]):
+        event["eventName"] = f"Event {event['referenceID']}"
 
     if not event["eventDatetime"]:
         event["eventDatetime"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

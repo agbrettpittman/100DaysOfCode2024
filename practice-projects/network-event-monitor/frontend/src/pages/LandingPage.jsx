@@ -4,13 +4,13 @@ import { Calendar, momentLocalizer } from 'react-big-calendar'
 import { useContext, useState } from 'react'
 import { AppContext } from '@/App'
 import { useNavigate } from 'react-router-dom'
-import NewEvent from '@components/NewEvent'
+import EventPopup from '@components/EventPopup'
 
 const localizer = momentLocalizer(moment)
 
 export default function LandingPage({}) {
-    const { EventList } = useContext(AppContext)
-    const [DisplayEventForm, setDisplayEventForm] = useState(false)
+    const { EventList, getEventList } = useContext(AppContext)
+    const [SelectedDate, setSelectedDate] = useState(null)
     const navigate = useNavigate()
 
     const events = EventList.map((event) => {
@@ -22,8 +22,9 @@ export default function LandingPage({}) {
         }
     })
 
-    function handleSelectSlot(slotInfo) {
-        console.log(slotInfo)
+    function handlePopupClose() {
+        setSelectedDate(null)
+        getEventList()
     }
 
     return (
@@ -35,10 +36,10 @@ export default function LandingPage({}) {
                 style={{ height: 500 }}
                 events={events}
                 onSelectEvent={(event) => navigate(`/events/${event.id}`)}
-                onSelectSlot={() => setDisplayEventForm(true)}
+                onSelectSlot={(slotInfo) => setSelectedDate(slotInfo.start)}
                 selectable
             />
-            {DisplayEventForm && <NewEvent onClose={() => setDisplayEventForm(false)}/>}
+            {SelectedDate && <EventPopup onClose={handlePopupClose} defaults={{ eventDatetime: SelectedDate }} />}
         </Box>
     )
 }

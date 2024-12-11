@@ -1,32 +1,24 @@
-import { useParams } from "react-router-dom"
 import useEvent from "@utilities/hooks/useEvent";
-import {TextField, Box, IconButton, useTheme, Button} from '@mui/material';
-import MyNumberInput from "@components/ui/controls/MyNumberInput";
-import { ArrowBack } from "@mui/icons-material";
-import { transparentize } from "polished";
+import { TextField, Box, Button } from '@mui/material';
 import { DateTimePicker } from "@mui/x-date-pickers";
 import moment from "moment";
 
-export default function EventEdit({}){
+export default function EventForm({id, onSave=()=>{}, defaults = {}}){
     
-    const { id } = useParams()
-    const {Event, setEvent, saveEvent} = useEvent(id)
-    const Theme = useTheme()
-    const InitialBackIconColor = transparentize(0.5, Theme.palette.primary.main)
+    const {Event, setEvent, saveEvent} = useEvent(id, defaults)
 
     function modifyEvent(event) {
         setEvent(event.target.name, event.target.value)
     }
 
+    function handleSave(){
+        saveEvent()
+        onSave()
+    }
+
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxWidth: '60rem', width: '30vw' }}>
             <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, alignItems: 'center' }}>
-                <IconButton
-                    href={`/events/${id}`}
-                    sx={{ color: InitialBackIconColor, "&:hover": {color: 'primary.main'}}}
-                >
-                    <ArrowBack />
-                </IconButton>
                 <TextField
                     label="Event Name"
                     value={Event.eventName || ''}
@@ -64,7 +56,7 @@ export default function EventEdit({}){
             />
             <Button
                 variant="contained"
-                onClick={saveEvent}
+                onClick={handleSave}
                 color="secondary"
             >
                 Save
