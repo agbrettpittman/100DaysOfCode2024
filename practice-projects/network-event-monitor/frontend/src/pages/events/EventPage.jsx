@@ -11,7 +11,7 @@ const NoValueSX = { color: 'text.disabled', fontStyle: 'italic' }
 export default function EventPage() {
     const { id } = useParams()
     const Theme = useTheme()
-    const {Event, deleteEvent } = useEvent(id)
+    const {Event, deleteEvent } = useEvent({id})
     const DisplayEventDatetime = Event.eventDatetime.format('MMMM Do YYYY, h:mm:ss a')
     const InitialEditIconColor = transparentize(0.5, Theme.palette.primary.main)
     const InitialDeleteIconColor = transparentize(0.5, Theme.palette.error.main)

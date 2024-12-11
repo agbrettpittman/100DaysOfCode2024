@@ -11,6 +11,7 @@ const localizer = momentLocalizer(moment)
 export default function LandingPage({}) {
     const { EventList, getEventList } = useContext(AppContext)
     const [SelectedDate, setSelectedDate] = useState(null)
+    const [SelectedEvent, setSelectedEvent] = useState(null)
     const navigate = useNavigate()
 
     const events = EventList.map((event) => {
@@ -24,6 +25,7 @@ export default function LandingPage({}) {
 
     function handlePopupClose() {
         setSelectedDate(null)
+        setSelectedEvent(null)
         getEventList()
     }
 
@@ -35,11 +37,17 @@ export default function LandingPage({}) {
                 endAccessor="end"
                 style={{ height: 500 }}
                 events={events}
-                onSelectEvent={(event) => navigate(`/events/${event.id}`)}
+                onSelectEvent={(event) => setSelectedEvent(event)}
                 onSelectSlot={(slotInfo) => setSelectedDate(slotInfo.start)}
                 selectable
             />
-            {SelectedDate && <EventPopup onClose={handlePopupClose} defaults={{ eventDatetime: SelectedDate }} />}
+            {(SelectedDate || SelectedEvent) ? ( 
+                <EventPopup 
+                    onClose={handlePopupClose} 
+                    defaults={(SelectedEvent) ? SelectedEvent : {eventDatetime: SelectedDate}}
+                    id={(SelectedEvent) ? SelectedEvent.id : null}
+                />
+            ) : null}
         </Box>
     )
 }

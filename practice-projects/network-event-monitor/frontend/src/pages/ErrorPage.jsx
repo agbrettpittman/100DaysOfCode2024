@@ -16,8 +16,6 @@ export default function ErrorPage({ error, resetErrorBoundary}) {
         errorText = error.statusText;
     }
 
-    console.log("ErrorPage: errorText:", errorText);
-
     return (
         <Box textAlign="center" mt={5}>
             <Typography variant="h1" component="h1" gutterBottom>

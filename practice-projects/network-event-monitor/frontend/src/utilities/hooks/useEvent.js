@@ -21,7 +21,7 @@ function getDefaultEvent(defaults){
     }
 }
 
-export default function useEvent(id = null, defaults = {}) {
+export default function useEvent({id = null, defaults = {}, onSave=()=>{}}) {
 
     const [Event, updateState] = useState(getDefaultEvent(defaults))
     const { id: routeId } = useParams()
@@ -69,10 +69,11 @@ export default function useEvent(id = null, defaults = {}) {
         }
         axios.request(RequestConfig).then(() => {
             getEventList()
+            onSave()
             toast.success('Event changes saved')
         }).catch((error) => {
             console.error(error)
-            toast.error('Failed to save event changes')
+            toast.error(error?.response?.data?.detail || 'Failed to save event')
         })
     }
 

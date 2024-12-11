@@ -53,13 +53,22 @@ async def create_event(event: EventModel, db: tuple[Cursor, Connection] = Depend
 
     if not event["eventDatetime"]:
         event["eventDatetime"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    cursor.execute('''
-        INSERT INTO events (eventName, description, referenceID, eventDatetime)
-        VALUES (:eventName, :description, :referenceID, :eventDatetime)
-    ''', event)
-    event["id"] = cursor.lastrowid
-    conn.commit()
-    return event
+    try:
+        cursor.execute('''
+            INSERT INTO events (eventName, description, referenceID, eventDatetime)
+            VALUES (:eventName, :description, :referenceID, :eventDatetime)
+        ''', event)
+        event["id"] = cursor.lastrowid
+        conn.commit()
+        return event
+    except Exception as e:
+        try:
+            if "UNIQUE constraint failed: events.referenceID" in str(e):
+                raise HTTPException(status_code=409, detail="Reference ID already exists")
+            else:
+                raise HTTPException(status_code=500, detail="Failed to create event")
+        except Exception as e:
+            handle_route_exception(e)
     
 
 @router.get("/{id}")

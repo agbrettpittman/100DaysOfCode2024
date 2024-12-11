@@ -5,15 +5,10 @@ import moment from "moment";
 
 export default function EventForm({id, onSave=()=>{}, defaults = {}}){
     
-    const {Event, setEvent, saveEvent} = useEvent(id, defaults)
+    const {Event, setEvent, saveEvent} = useEvent({id, defaults, onSave})
 
     function modifyEvent(event) {
         setEvent(event.target.name, event.target.value)
-    }
-
-    function handleSave(){
-        saveEvent()
-        onSave()
     }
 
     return (
@@ -56,7 +51,7 @@ export default function EventForm({id, onSave=()=>{}, defaults = {}}){
             />
             <Button
                 variant="contained"
-                onClick={handleSave}
+                onClick={saveEvent}
                 color="secondary"
             >
                 Save
