@@ -32,7 +32,7 @@ export default function MainAppBar() {
     return (
         <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
             <Toolbar>
-                <LogoLink>
+                <LogoLink to="/">
                     <Logo src="/logo.svg" alt="Logo" />
                     <Typography variant="h5" noWrap component="h1">
                         Network Event Monitor

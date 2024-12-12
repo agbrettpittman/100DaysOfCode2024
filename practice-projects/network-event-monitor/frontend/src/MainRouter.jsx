@@ -11,9 +11,8 @@ import ErrorPage from '@pages/ErrorPage';
 import LandingPage from "@pages/LandingPage";
 import NotFoundPage from "@pages/NotFoundPage";
 import LoginPage from "@pages/LoginPage";
-import EventPage from "@pages/events/EventPage";
+import EventPage from "@pages/EventPage";
 import EventForm from "@components/EventForm";
-import { ErrorBoundary } from "react-error-boundary";
 
 const MainRouter = createBrowserRouter(createRoutesFromElements(
     <Route path="/" errorElement={<ErrorPage />}>

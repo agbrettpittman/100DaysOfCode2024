@@ -2,13 +2,20 @@ import useEvent from "@utilities/hooks/useEvent";
 import { TextField, Box, Button } from '@mui/material';
 import { DateTimePicker } from "@mui/x-date-pickers";
 import moment from "moment";
+import { useNavigate, useParams } from "react-router-dom";
 
 export default function EventForm({id, onSave=()=>{}, defaults = {}}){
     
-    const {Event, setEvent, saveEvent} = useEvent({id, defaults, onSave})
+    const {Event, setEvent, saveEvent, Changed} = useEvent({id, defaults, onSave})
+    const navigate = useNavigate()
+    const { id : routeId } = useParams()
 
     function modifyEvent(event) {
         setEvent(event.target.name, event.target.value)
+    }
+
+    function goToEventPage() {
+        navigate(`/events/${id}`)
     }
 
     return (
@@ -49,13 +56,25 @@ export default function EventForm({id, onSave=()=>{}, defaults = {}}){
                 multiline
                 rows={4}
             />
-            <Button
-                variant="contained"
-                onClick={saveEvent}
-                color="secondary"
-            >
-                Save
-            </Button>
+            {id && routeId !== id && (
+                <Button
+                    variant="contained"
+                    color="secondary"
+                    onClick={goToEventPage}
+                    fullWidth
+                >
+                    View Event
+                </Button>
+            )}
+            {Changed && (
+                <Button
+                    variant="contained"
+                    color="success"
+                    onClick={saveEvent}
+                >
+                    Save
+                </Button>
+            )}
         </Box>
     )
 

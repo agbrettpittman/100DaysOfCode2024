@@ -24,6 +24,7 @@ function getDefaultEvent(defaults){
 export default function useEvent({id = null, defaults = {}, onSave=()=>{}}) {
 
     const [Event, updateState] = useState(getDefaultEvent(defaults))
+    const [DBEvent, setDBEvent] = useState(null)
     const { id: routeId } = useParams()
     const navigate = useNavigate()
     const { getEventList } = useContext(AppContext)
@@ -31,12 +32,14 @@ export default function useEvent({id = null, defaults = {}, onSave=()=>{}}) {
     useEffect(() => {
         if (!id) {
             updateState(getDefaultEvent(defaults))
+            setDBEvent(null)
             return
         }
         axios.get(`/events/${id}`).then((response) => {
             let newState = {...response.data}
             newState.eventDatetime = moment(newState.eventDatetime)
             updateState(newState)
+            setDBEvent(newState)
         }).catch((error) => {
             console.error(error)
             toast.error('Failed to get event')
@@ -95,6 +98,6 @@ export default function useEvent({id = null, defaults = {}, onSave=()=>{}}) {
         })
     }
 
-    return { Event, setEvent, deleteEvent, saveEvent }
+    return { Event, setEvent, deleteEvent, saveEvent, Changed: JSON.stringify(Event) !== JSON.stringify(DBEvent) }
 
 }
