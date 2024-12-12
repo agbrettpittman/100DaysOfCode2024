@@ -39,10 +39,18 @@ export default function EventForm({id, onSave=()=>{}, defaults = {}}){
                 fullWidth
             />
             <DateTimePicker
-                label="Event Datetime"
-                value={Event.eventDatetime || moment()}
-                name="eventDatetime"
-                onChange={(date) => setEvent('eventDatetime', date)}
+                label="Start"
+                value={Event.start || moment()}
+                name="start"
+                onChange={(date) => setEvent('start', date)}
+                inputVariant="outlined"
+                fullWidth
+            />
+            <DateTimePicker
+                label="End"
+                value={Event.end || moment().add(2, 'hours')}
+                name="end"
+                onChange={(date) => setEvent('end', date)}
                 inputVariant="outlined"
                 fullWidth
             />

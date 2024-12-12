@@ -4,7 +4,7 @@ from pydantic import BaseModel, field_validator
 from sqlite3 import Connection, Cursor
 from utilities.dbConn import get_db
 from utilities.utils import handle_route_exception
-from datetime import datetime
+from datetime import datetime, timedelta
 
 router = APIRouter(
     prefix="/events",
@@ -16,9 +16,10 @@ class EventModel(BaseModel):
     referenceID: str | None = None
     eventName: str | None = None
     description: str | None = None
-    eventDatetime: str | None = None
+    start: str | None = None
+    end: str | None = None
 
-    @field_validator("eventDatetime")
+    @field_validator("start", "end")
     def validate_event_datetime(cls, value: str):
         try:
             if (value): datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
@@ -31,7 +32,7 @@ class EventModel(BaseModel):
 async def get_all_events(db: tuple[Cursor, Connection] = Depends(get_db)):
     cursor, conn = db
     try:
-        cursor.execute("SELECT * FROM events ORDER BY eventDatetime DESC")
+        cursor.execute("SELECT * FROM events ORDER BY start DESC")
         events = cursor.fetchall()
         return events
     except Exception as e:
@@ -51,12 +52,16 @@ async def create_event(event: EventModel, db: tuple[Cursor, Connection] = Depend
     if (not event["eventName"]):
         event["eventName"] = f"Event {event['referenceID']}"
 
-    if not event["eventDatetime"]:
-        event["eventDatetime"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    if not event["start"]:
+        event["start"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    if not event["end"]:
+        # default event duration is 2 hours from the start
+        event["end"] = (datetime.now() + timedelta(hours=2)).strftime("%Y-%m-%d %H:%M:%S")
+
     try:
         cursor.execute('''
-            INSERT INTO events (eventName, description, referenceID, eventDatetime)
-            VALUES (:eventName, :description, :referenceID, :eventDatetime)
+            INSERT INTO events (eventName, description, referenceID, start, end)
+            VALUES (:eventName, :description, :referenceID, :start, :end)
         ''', event)
         event["id"] = cursor.lastrowid
         conn.commit()

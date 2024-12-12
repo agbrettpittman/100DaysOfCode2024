@@ -13,11 +13,16 @@ const initialEvent = {
 }
 
 function getDefaultEvent(defaults){
-    const { eventDatetime: defaultEventDateTime, ...otherDefaults } = defaults
+    const { 
+        start: defaultStart, 
+        end: defaultEnd,
+        ...otherDefaults
+    } = defaults
     return {
         ...initialEvent,
         ...otherDefaults,
-        eventDatetime: defaultEventDateTime ? moment(defaultEventDateTime) : moment()
+        start: defaultStart ? moment(defaultStart) : moment(),
+        end: defaultEnd ? moment(defaultEnd) : moment().add(2, 'hours')
     }
 }
 
@@ -37,7 +42,8 @@ export default function useEvent({id = null, defaults = {}, onSave=()=>{}}) {
         }
         axios.get(`/events/${id}`).then((response) => {
             let newState = {...response.data}
-            newState.eventDatetime = moment(newState.eventDatetime)
+            newState.start = moment(newState.start)
+            newState.end = moment(newState.end)
             updateState(newState)
             setDBEvent(newState)
         }).catch((error) => {
@@ -67,7 +73,8 @@ export default function useEvent({id = null, defaults = {}, onSave=()=>{}}) {
             url: id ? `/events/${id}` : '/events',
             data: {
                 ...Event,
-                eventDatetime: Event.eventDatetime.format('YYYY-MM-DD HH:mm:ss')
+                start: Event.start.format('YYYY-MM-DD HH:mm:ss'),
+                end: Event.end.format('YYYY-MM-DD HH:mm:ss')
             }
         }
         axios.request(RequestConfig).then(() => {

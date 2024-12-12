@@ -12,7 +12,9 @@ export default function EventPage() {
     const { id } = useParams()
     const Theme = useTheme()
     const {Event, deleteEvent } = useEvent({id})
-    const DisplayEventDatetime = Event.eventDatetime.format('MMMM Do YYYY, h:mm:ss a')
+    function getDisplayDatetime(type) {
+        return Event[type].format('MMMM Do YYYY, h:mm:ss a')
+    }
     const InitialDeleteIconColor = transparentize(0.5, Theme.palette.error.main)
 
     return (
@@ -33,7 +35,17 @@ export default function EventPage() {
                     {Event.referenceID}
                 </Typography>
             </Box>
-            <Typography variant="body1" sx={{fontStyle: "italic"}}>{DisplayEventDatetime}</Typography>
+            <Box display={'flex'} flexDirection={'row'} gap={'1rem'} alignItems={'center'}>
+                <Typography variant="body1" sx={{fontStyle: "italic"}}>
+                    {getDisplayDatetime("start")}
+                </Typography>
+                <Typography variant="body1" sx={{color: 'text.secondary', fontWeight: 'light', fontSize: '1.25rem'}}>
+                    {' - '}
+                </Typography>
+                <Typography variant="body1" sx={{fontStyle: "italic"}}>
+                    {getDisplayDatetime("end")}
+                </Typography>
+            </Box>
             <Typography variant="body1" data-testid="description" sx={(Event.description) ? undefined : NoValueSX}>
                 {Event.description || "No Description"}
             </Typography>

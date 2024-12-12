@@ -18,8 +18,8 @@ export default function LandingPage({}) {
         return {
             id: event.id,
             title: event.eventName,
-            start: event.eventDatetime,
-            end: event.eventDatetime
+            start: event.start,
+            end: event.end
         }
     })
 

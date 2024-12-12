@@ -28,7 +28,8 @@ def initialize_database():
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS events (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                eventDatetime TEXT DEFAULT CURRENT_TIMESTAMP,
+                start TEXT DEFAULT CURRENT_TIMESTAMP,
+                end TEXT NOT NULL,
                 eventName TEXT NOT NULL,
                 description TEXT,
                 referenceID TEXT NOT NULL UNIQUE
