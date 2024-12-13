@@ -4,7 +4,6 @@ import os, importlib.util
 
 router = APIRouter(
     prefix="/widgets",
-    tags=["widgets"],
     responses={404: {"description": "Not found"}},
 )
 
@@ -19,11 +18,12 @@ for widget_router_dir in os.listdir(widget_routers_path):
     # Import the routerIndex.py module
     spec = importlib.util.spec_from_file_location(f"{widget_router_dir}.routerIndex", router_index_path)
     module = importlib.util.module_from_spec(spec)
+    module.__package__ = f"routers.widgetRouters.{widget_router_dir}"
     spec.loader.exec_module(module)
     
     # Include the router from the module
     if hasattr(module, "router"):
-        router.include_router(module.router)
         module_title = module.title if hasattr(module, "title") else widget_router_dir
+        router.include_router(module.router)
         print(f"Loaded router for {module_title}")
     

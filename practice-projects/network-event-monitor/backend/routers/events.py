@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 
 router = APIRouter(
     prefix="/events",
-    tags=["events"],
+    tags=["Events"],
     responses={404: {"description": "Not found"}},
 )
 
