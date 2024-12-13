@@ -3,7 +3,7 @@ from .routers import plotters
 
 title = "Ping Plotter"
 router = APIRouter(
-    prefix="/pingPlotter",
+    prefix="/ping-plotter",
     tags=[title],
     responses={404: {"description": "Not found"}},
 )
