@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from utilities.dbConn import initialize_database
-from routers import events
+from routers import events, widgetRouterRoot
 import os
 
 load_dotenv()
@@ -20,6 +20,7 @@ app.add_middleware(
 )
 
 app.include_router(events.router)
+app.include_router(widgetRouterRoot.router)
 
 @app.on_event("startup")
 async def startup_event():
