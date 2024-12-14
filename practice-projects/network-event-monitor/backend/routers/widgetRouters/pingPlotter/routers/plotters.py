@@ -13,6 +13,9 @@ class PlotterModel(BaseModel):
     name: str
     event_id: int
 
+class HostModel(BaseModel):
+    host: str
+
 @router.post("")
 async def create_plotter(plotter: PlotterModel, db: tuple[Cursor, Connection] = Depends(get_db)):
     cursor, conn = db
@@ -81,12 +84,30 @@ async def delete_plotter(plotter_id: int, db: tuple[Cursor, Connection] = Depend
         handle_route_exception(e)
 
 @router.get("/{plotter_id}/hosts")
-async def get_plotter_hosts(plotter_id: int):
-    return {"message": f"Get plotter {plotter_id} hosts"}
+async def get_plotter_hosts(plotter_id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
+    cursor, conn = db
+    try:
+        cursor.execute("SELECT * FROM widgets_pingPlotter_hosts WHERE plotter_id = ?", (plotter_id,))
+        hosts = cursor.fetchall()
+        return hosts
+    except Exception as e:
+        handle_route_exception(e)
 
 @router.post("/{plotter_id}/hosts")
-async def add_plotter_host(plotter_id: int):
-    return {"message": f"Add host to plotter {plotter_id}"}
+async def add_plotter_host(
+    plotter_id: int, host: HostModel, db: tuple[Cursor, Connection] = Depends(get_db)
+):
+    cursor, conn = db
+    host = host.model_dump()
+    try:
+        cursor.execute('''
+            INSERT INTO widgets_pingPlotter_hosts 
+            (plotter_id, host) VALUES (:plotter_id, :host)
+        ''', {**host, "plotter_id": plotter_id})
+        conn.commit()
+        return {"message": "Host added to plotter"}
+    except Exception as e:
+        handle_route_exception(e)
 
 @router.put("/{plotter_id}/hosts")
 async def update_plotter_hosts(plotter_id: int):
