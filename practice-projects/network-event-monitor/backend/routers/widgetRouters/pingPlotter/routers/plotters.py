@@ -1,6 +1,8 @@
+import ipaddress
 from fastapi import APIRouter, Depends, HTTPException
 from utilities.dbConn import get_db
 from utilities.utils import handle_route_exception
+from ..utilities.general import is_valid_hostname
 from sqlite3 import Connection, Cursor
 from pydantic import BaseModel, field_validator
 
@@ -15,6 +17,16 @@ class PlotterModel(BaseModel):
 
 class HostModel(BaseModel):
     host: str
+
+    @field_validator("host")
+    def validate_host(cls, value: str):
+        try:
+            ipaddress.ip_address(value)
+            return value
+        except ValueError:
+            if not is_valid_hostname(value):
+                raise ValueError("Invalid hostname or IP address")
+            return value
 
 @router.post("")
 async def create_plotter(plotter: PlotterModel, db: tuple[Cursor, Connection] = Depends(get_db)):
@@ -109,13 +121,29 @@ async def add_plotter_host(
     except Exception as e:
         handle_route_exception(e)
 
-@router.put("/{plotter_id}/hosts")
-async def update_plotter_hosts(plotter_id: int):
-    return {"message": f"Update plotter {plotter_id} hosts"}
-
-# this will become a websocket route
+@router.put("/{plotter_id}/hosts/{host_id}")
+async def update_plotter_hosts(
+    plotter_id: int, host_id: int, host: HostModel, 
+    db: tuple[Cursor, Connection] = Depends(get_db)
+):
+    cursor, conn = db
+    host = host.model_dump(exclude_unset=True)
+    set_statements = [f"{key} = :{key}" for key in host if key != "id"]
+    set_clause = ", ".join(set_statements)
+    try:
+        cursor.execute(f'''
+            UPDATE widgets_pingPlotter_hosts SET
+                {set_clause}
+            WHERE id = :id
+            AND plotter_id = :plotter_id
+        ''', {**host, "id": host_id, "plotter_id": plotter_id})
+        conn.commit()
+        return host
+    except Exception as e:
+        handle_route_exception(e)
+                               
 @router.get("/{plotter_id}/results")
 async def get_plotter_results(plotter_id: int):
-    return {"message": f"Get plotter {plotter_id} results"}
+    return {"message": f"Get plotter {plotter_id} results. This will become a web socket"}
 
 
