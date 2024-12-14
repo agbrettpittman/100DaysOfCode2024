@@ -94,7 +94,6 @@ async def update_character(id: int, event: EventModel, db: tuple[Cursor, Connect
     event["id"] = id
     set_statements = [f"{key} = :{key}" for key in event if key != "id"]
     set_clause = ", ".join(set_statements)
-    print(set_clause)
     cursor.execute(f'''
         UPDATE events SET 
             {set_clause}
