@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { AppContext } from "@/App";
@@ -33,10 +33,13 @@ export default function useEvent({id = null, defaults = {}, onSave=()=>{}}) {
     const { id: routeId } = useParams()
     const navigate = useNavigate()
     const { getEventList } = useContext(AppContext)
+    const memoizedDefaults = useMemo(() => defaults, [JSON.stringify(defaults)])
 
     useEffect(() => {
+        console.log('useEffect')
         if (!id) {
-            updateState(getDefaultEvent(defaults))
+            console.log(memoizedDefaults)
+            updateState(getDefaultEvent(memoizedDefaults))
             setDBEvent(null)
             return
         }
@@ -50,7 +53,7 @@ export default function useEvent({id = null, defaults = {}, onSave=()=>{}}) {
             console.error(error)
             toast.error('Failed to get event')
         })
-    }, [id, defaults])
+    }, [id, memoizedDefaults])
 
     function setEvent(key, value) {
         updateState((prevState) => {

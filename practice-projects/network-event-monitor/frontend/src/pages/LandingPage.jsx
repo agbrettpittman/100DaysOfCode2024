@@ -29,6 +29,13 @@ export default function LandingPage({}) {
         getEventList()
     }
 
+    function getSelectedDateDefaults(selected) {
+        return {
+            start: selected,
+            end: moment(selected).add(2, 'hours')
+        }
+    }
+
     return (
         <Box>
             <Calendar
@@ -44,7 +51,7 @@ export default function LandingPage({}) {
             {(SelectedDate || SelectedEvent) ? ( 
                 <EventPopup 
                     onClose={handlePopupClose} 
-                    defaults={(SelectedEvent) ? SelectedEvent : {eventDatetime: SelectedDate}}
+                    defaults={(SelectedEvent) ? SelectedEvent : getSelectedDateDefaults(SelectedDate)}
                     id={(SelectedEvent) ? SelectedEvent.id : null}
                 />
             ) : null}
