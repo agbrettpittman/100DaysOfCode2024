@@ -13,7 +13,6 @@ router = APIRouter(
 
 class PlotterModel(BaseModel):
     name: str
-    event_id: int
 
 class HostModel(BaseModel):
     host: str
@@ -35,22 +34,39 @@ async def create_plotter(plotter: PlotterModel, db: tuple[Cursor, Connection] = 
     if not plotter["name"]:
         plotter["name"] = f"Untitled Ping Plotter"
     try:
-        query = '''
-            INSERT INTO widgets_pingPlotter_plotter 
-            (name, event_id) VALUES (:name, :event_id)
-        '''
+        plotter_query = "INSERT INTO widgets_PingPlotter_plotter (name) VALUES (:name)"
+        cursor.execute(plotter_query, plotter)
 
-        cursor.execute(query, plotter)
+        event_mapping_query = '''
+            INSERT INTO widgetMappings
+            (widgetName, event_id, widget_id)
+            VALUES ('PingPlotter', :event_id, :widget_id)
+        '''
+        event_mapping_dict = {
+            "event_id": plotter["event_id"],
+            "widget_id": cursor.lastrowid
+        }
+        cursor.execute(event_mapping_query, event_mapping_dict)
+
         conn.commit()
         return {"message": "Plotter created"}
     except Exception as e:
+        conn.rollback()
         handle_route_exception(e)
 
 @router.get("/by-event/{event_id}")
 async def get_plotter_by_event(event_id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
     cursor, conn = db
     try:
-        cursor.execute("SELECT * FROM widgets_pingPlotter_plotter WHERE event_id = ?", (event_id,))
+        cursor.execute('''
+            SELECT widgets_PingPlotter_plotter.* 
+            FROM 
+                widgets_PingPlotter_plotter
+                JOIN widgetMappings ON 
+                    widgets_PingPlotter_plotter.id = widgetMappings.widget_id
+                    AND widgetMappings.name = 'PingPlotter'
+            WHERE widgetMappings.event_id = ?
+        ''', (event_id,))
         plotter = cursor.fetchall()
         return plotter
     except Exception as e:
@@ -60,7 +76,7 @@ async def get_plotter_by_event(event_id: int, db: tuple[Cursor, Connection] = De
 async def get_plotter(plotter_id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
     cursor, conn = db
     try:
-        cursor.execute("SELECT * FROM widgets_pingPlotter_plotter WHERE id = ?", (plotter_id,))
+        cursor.execute("SELECT * FROM widgets_PingPlotter_plotter WHERE id = ?", (plotter_id,))
         plotter = cursor.fetchone()
         return plotter
     except Exception as e:
@@ -76,7 +92,7 @@ async def update_plotter(
     set_clause = ", ".join(set_statements)
     try:
         cursor.execute(f'''
-            UPDATE widgets_pingPlotter_plotter SET
+            UPDATE widgets_PingPlotter_plotter SET
                 {set_clause}
             WHERE id = :id
         ''', {**plotter, "id": plotter_id})
@@ -89,7 +105,7 @@ async def update_plotter(
 async def delete_plotter(plotter_id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
     cursor, conn = db
     try:
-        cursor.execute("DELETE FROM widgets_pingPlotter_plotter WHERE id = ?", (plotter_id,))
+        cursor.execute("DELETE FROM widgets_PingPlotter_plotter WHERE id = ?", (plotter_id,))
         conn.commit()
         return {"message": "Plotter deleted successfully"}
     except Exception as e:
@@ -99,7 +115,7 @@ async def delete_plotter(plotter_id: int, db: tuple[Cursor, Connection] = Depend
 async def get_plotter_hosts(plotter_id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
     cursor, conn = db
     try:
-        cursor.execute("SELECT * FROM widgets_pingPlotter_hosts WHERE plotter_id = ?", (plotter_id,))
+        cursor.execute("SELECT * FROM widgets_PingPlotter_hosts WHERE plotter_id = ?", (plotter_id,))
         hosts = cursor.fetchall()
         return hosts
     except Exception as e:
@@ -113,7 +129,7 @@ async def add_plotter_host(
     host = host.model_dump()
     try:
         cursor.execute('''
-            INSERT INTO widgets_pingPlotter_hosts 
+            INSERT INTO widgets_PingPlotter_hosts 
             (plotter_id, host) VALUES (:plotter_id, :host)
         ''', {**host, "plotter_id": plotter_id})
         conn.commit()
@@ -132,7 +148,7 @@ async def update_plotter_hosts(
     set_clause = ", ".join(set_statements)
     try:
         cursor.execute(f'''
-            UPDATE widgets_pingPlotter_hosts SET
+            UPDATE widgets_PingPlotter_hosts SET
                 {set_clause}
             WHERE id = :id
             AND plotter_id = :plotter_id
