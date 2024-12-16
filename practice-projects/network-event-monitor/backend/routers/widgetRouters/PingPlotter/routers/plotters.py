@@ -12,6 +12,7 @@ router = APIRouter(
 )
 
 class PlotterModel(BaseModel):
+    event_id: int
     name: str
 
 class HostModel(BaseModel):
@@ -36,6 +37,7 @@ async def create_plotter(plotter: PlotterModel, db: tuple[Cursor, Connection] = 
     try:
         plotter_query = "INSERT INTO widgets_PingPlotter_plotter (name) VALUES (:name)"
         cursor.execute(plotter_query, plotter)
+        
 
         event_mapping_query = '''
             INSERT INTO widgetMappings

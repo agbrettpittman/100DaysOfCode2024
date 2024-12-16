@@ -8,8 +8,7 @@ def main(cursor):
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS widgets_PingPlotter_plotter (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            FOREIGN KEY (event_id) REFERENCES events (id)
+            name TEXT
         )
     ''')
     cursor.execute('''

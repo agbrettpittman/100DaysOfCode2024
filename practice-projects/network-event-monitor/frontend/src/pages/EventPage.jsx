@@ -5,6 +5,8 @@ import { Delete as DeleteIcon } from '@mui/icons-material'
 import { Typography, Box, IconButton, useTheme, Divider } from '@mui/material'
 import { transparentize } from 'polished'
 import HoldIconButton from '@components/ui/HoldIconButton'
+import PingPlotter from '@components/widgets/PingPlotter'
+import EventWidgets from '@components/EventWidgets'
 
 const NoValueSX = { color: 'text.disabled', fontStyle: 'italic' }
 
@@ -49,6 +51,7 @@ export default function EventPage() {
             <Typography variant="body1" data-testid="description" sx={(Event.description) ? undefined : NoValueSX}>
                 {Event.description || "No Description"}
             </Typography>
+            <EventWidgets widgets={Event.widgets} />
         </Box>
     )
 }

@@ -81,6 +81,11 @@ async def get_event(id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
     cursor, conn = db
     cursor.execute("SELECT * FROM events WHERE id = :id", {"id": id})
     event = cursor.fetchone()
+    event = dict(event)
+
+    cursor.execute("SELECT * FROM widgetMappings WHERE event_id = :id", {"id": id})
+    widgets = cursor.fetchall()
+    event["widgets"] = widgets
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
 

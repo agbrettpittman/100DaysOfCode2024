@@ -9,7 +9,8 @@ const initialEvent = {
     id: null,
     eventName: '',
     description: '',
-    referenceID: ''
+    referenceID: '',
+    widgets: [],
 }
 
 function getDefaultEvent(defaults){
