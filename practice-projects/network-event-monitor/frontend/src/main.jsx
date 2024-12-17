@@ -8,9 +8,6 @@ import '@fontsource/roboto/700.css';
 import 'react-toastify/dist/ReactToastify.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import MainRouter from './MainRouter';
-import axios from 'axios';
-
-axios.defaults.baseURL = import.meta.env.VITE_APP_API_BASE;
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

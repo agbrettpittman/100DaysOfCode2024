@@ -1,7 +1,7 @@
 import { useEffect, useState, useContext, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
 import { AppContext } from "@/App";
+import requestor from "@utilities/requestor";
 import { toast } from "react-toastify";
 import moment from "moment";
 
@@ -44,7 +44,7 @@ export default function useEvent({id = null, defaults = {}, onSave=()=>{}}) {
             setDBEvent(null)
             return
         }
-        axios.get(`/events/${id}`).then((response) => {
+        requestor.get(`/events/${id}`).then((response) => {
             let newState = {...response.data}
             newState.start = moment(newState.start)
             newState.end = moment(newState.end)
@@ -81,7 +81,7 @@ export default function useEvent({id = null, defaults = {}, onSave=()=>{}}) {
                 end: Event.end.format('YYYY-MM-DD HH:mm:ss')
             }
         }
-        axios.request(RequestConfig).then(() => {
+        requestor.request(RequestConfig).then(() => {
             getEventList()
             onSave()
             toast.success('Event changes saved')
@@ -97,7 +97,7 @@ export default function useEvent({id = null, defaults = {}, onSave=()=>{}}) {
             toast.error('No event to delete')
             return
         }
-        axios.delete(`/events/${id}`).then(() => {
+        requestor.delete(`/events/${id}`).then(() => {
             getEventList()
             if (Number(routeId) === Number(id)) {
                 navigate('/')

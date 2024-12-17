@@ -1,7 +1,7 @@
 import { Divider, ListItemIcon, Box, Drawer, Toolbar, List, ListItem, ListItemButton, ListItemText} from '@mui/material';
 import { Add } from '@mui/icons-material';
 import DrawerNavItem from './DrawerNavItem';
-import axios from 'axios';
+import requestor from '@utilities/requestor';
 import { useContext } from 'react';
 import { AppContext } from '@/App';
 import { toast } from 'react-toastify';
@@ -13,7 +13,7 @@ export default function DrawerNav() {
     const { EventList, getEventList } = useContext(AppContext)
 
     async function createCharacter() {
-        axios.post('/events', {}).then(() => {
+        requestor.post('/events', {}).then(() => {
             getEventList()
         }).catch((error) => {
             toast.error('Failed to create event')

@@ -12,7 +12,7 @@ async function loadWidgetComponent(widgetName){
     }
 };
 
-export default function EventWidgets({widgets = {}}) {
+export default function EventWidgets({widgets = []}) {
 
     const [loadedWidgets, setLoadedWidgets] = useState({});
 

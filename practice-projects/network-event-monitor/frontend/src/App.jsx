@@ -4,7 +4,7 @@ import { Outlet } from "react-router-dom";
 import MainAppBar from '@components/appFrame/MainAppBar';
 import DrawerNav from '@components/appFrame/DrawerNav';
 import { useEffect, createContext, useState } from 'react';
-import axios from 'axios';
+import requestor from '@utilities/requestor';
 import { toast, ToastContainer } from 'react-toastify';
 import { ErrorBoundary } from 'react-error-boundary';
 import ErrorPage from '@pages/ErrorPage';
@@ -23,7 +23,8 @@ export default function App() {
     }, [])
     
     async function getEventList() {
-        axios.get('/events').then((response) => {
+        requestor.get('/events').then((response) => {
+            console.log(response.data)
             const NewEvents = response.data.map((event) => {
                 return {
                     ...event,
