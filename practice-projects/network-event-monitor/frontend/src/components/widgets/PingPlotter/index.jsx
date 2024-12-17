@@ -18,6 +18,6 @@ export default function pingPlotter({widgetId}) {
     }, [widgetId])
 
     return (
-        <div>Ping Plotter {Data.name}</div>
+        <div>Ping Plotter: {Data.name}</div>
     )
 }
