@@ -2,7 +2,17 @@ import requestor from '@utilities/requestor'
 import {useEffect, useState} from 'react'
 import { toast } from 'react-toastify'
 
-export default function pingPlotter({widgetId}) {
+export const Title = 'Ping Plotter'
+
+export async function Create(){
+    return {
+        name: Title,
+        widgetName: 'PingPlotter',
+    }
+}
+
+
+export default function PingPlotter({widgetId}) {
 
     const [Data, setData] = useState({
         name: '',

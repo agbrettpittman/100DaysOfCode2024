@@ -1,53 +1,67 @@
 import {useEffect, useState} from 'react'
 import { toast } from 'react-toastify';
+import { Box, Button } from '@mui/material';
 
-async function loadWidgetComponent(widgetName){
-    try {
-        const module = await import(`/src/components/widgets/${widgetName}`);
-        return module.default;
-    } catch (error) {
-        console.error(`Failed to load widget: ${widgetName}`, error);
-        toast.error(`Failed to load widget: ${widgetName}`);
-        return null;
-    }
-};
+const WidgetModules = import.meta.glob('/src/components/widgets/*/index.jsx');
+
 
 export default function EventWidgets({widgets = []}) {
 
-    const [loadedWidgets, setLoadedWidgets] = useState({});
+    const [AvailableWidgets, setAvailableWidgets] = useState({});
 
     useEffect(() => {
-        loadWidgets();
+        loadAllWidgets();
     }, [widgets])
 
-    async function loadWidgets() {
-        const componentPromises = widgets.map(async (widget) => {
-            const Component = await loadWidgetComponent(widget.widgetName);
-            return { id: widget.id, Component, widgetId: widget.widget_id };
-        });
+    async function loadAllWidgets() {
+        let tempWidgets = {};
+        for (const [path, loader] of Object.entries(WidgetModules)) {
+            try {
+                const module = await loader(); // Load the module
 
-        const components = await Promise.all(componentPromises);
-        setLoadedWidgets(
-            components.reduce((acc, { id, Component, widgetId }) => {
-                acc[id] = { Component, widgetId };
-                return acc;
-            }, {})
-        );
+                // Use the folder name as the widget key (assumes standard folder structure)
+                const widgetName = path.split('/').slice(-2, -1)[0];
+
+                // Add the widget data to the widgets object
+                tempWidgets[widgetName] = {
+                    Title: module.Title || widgetName,
+                    Create: module.Create || undefined,
+                    Component: module.default, // The main component
+                };
+
+
+            } catch (error) {
+                console.error(`Failed to load widget module from ${path}:`, error);
+            }
+        }
+
+        setAvailableWidgets(tempWidgets);
+
     }
-
-
 
     return (
         <div>
-            {widgets.map((widget) => {
-                const loadedWidget = loadedWidgets[widget.id];
-                if (!loadedWidget || !loadedWidget.Component) {
-                    return <p key={widget.id}>Loading {widget.widgetName}...</p>;
-                }
-
-                const { Component, widgetId } = loadedWidget;
-                return <Component key={widget.id} widgetId={widgetId} />;
-            })}
+            <Button
+                variant="contained"
+                onClick={() => {
+                    console.log('New Widget')
+                }}
+                sx={{ width: 'fit-content' }}
+            >
+                Add Widget
+            </Button>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+                {widgets.map((widget) => {
+                    const { widget_id, widgetName } = widget;
+                    const loadedWidget = AvailableWidgets[widgetName];
+                    if (!loadedWidget || !loadedWidget.Component) {
+                        return <p key={widget.id}>Loading {widgetName}...</p>;
+                    }   
+                    
+                    const { Component } = loadedWidget;
+                    return <Component key={widget.id} widgetId={widget_id} />;
+                })}
+            </Box>
         </div>
     )
 }
