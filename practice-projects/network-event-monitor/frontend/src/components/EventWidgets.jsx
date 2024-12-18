@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from 'react'
+import {useEffect, useRef, useState, createContext} from 'react'
 import { toast } from 'react-toastify';
 import { Autocomplete, Box, Button, TextField } from '@mui/material';
 import { useParams } from 'react-router-dom';
@@ -6,6 +6,7 @@ import requestor from '@utilities/requestor';
 
 const WidgetModules = import.meta.glob('/src/components/widgets/*/index.jsx');
 
+export const WidgetsContext = createContext({});
 
 export default function EventWidgets() {
 
@@ -98,6 +99,18 @@ export default function EventWidgets() {
         }
     }
 
+    async function deleteWidget(widgetId) {
+        requestor.delete(`/events/${id}/widgets/${widgetId}`).then(async () => {
+            toast.success('Deleted widget')
+            // invalidate the cache
+            await requestor.storage.remove(`/events/${id}/widgets`)
+            loadEventWidgets();
+        }).catch((error) => {
+            toast.error('Failed to delete widget')
+            console.error(error)
+        })
+    }
+
     return (
         <div>
             <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
@@ -119,18 +132,20 @@ export default function EventWidgets() {
                     Add Widget
                 </Button>
             </Box>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-                {widgets.map((widget) => {
-                    const { widget_id, widgetName } = widget;
-                    const loadedWidget = AvailableWidgets[widgetName];
-                    if (!loadedWidget || !loadedWidget.Component) {
-                        return <p key={widget.id}>Loading {widgetName}...</p>;
-                    }   
-                    
-                    const { Component } = loadedWidget;
-                    return <Component key={widget.id} widgetId={widget_id} />;
-                })}
-            </Box>
+            <WidgetsContext.Provider value={{ deleteWidget }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+                    {widgets.map((widget) => {
+                        const { widget_id, widgetName } = widget;
+                        const loadedWidget = AvailableWidgets[widgetName];
+                        if (!loadedWidget || !loadedWidget.Component) {
+                            return <p key={widget.id}>Loading {widgetName}...</p>;
+                        }   
+                        
+                        const { Component } = loadedWidget;
+                        return <Component key={widget.id} widgetId={widget_id} />;
+                    })}
+                </Box>
+            </WidgetsContext.Provider>
         </div>
     )
 }

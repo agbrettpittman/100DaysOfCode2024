@@ -146,3 +146,22 @@ async def add_widget_to_event(id: int, widget: WidgetModel, db: tuple[Cursor, Co
         return widget
     except Exception as e:
         handle_route_exception(e)
+
+@router.delete("/{id}/widgets/{widget_id}")
+async def remove_widget_from_event(id: int, widget_id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
+    cursor, conn = db
+    original_widget_query = '''
+        SELECT * FROM widgetMappings
+        WHERE event_id = :event_id AND widget_id = :widget_id
+    '''
+    cursor.execute(original_widget_query, {"event_id": id, "widget_id": widget_id})
+    widget = cursor.fetchone()
+    if not widget:
+        raise HTTPException(status_code=404, detail="Widget not found in event")
+    cursor.execute('''
+        DELETE FROM widgetMappings
+        WHERE event_id = :event_id AND widget_id = :widget_id
+    ''', {"event_id": id, "widget_id": widget_id})
+    
+    conn.commit()
+    return {"message": "Widget removed from event successfully"}

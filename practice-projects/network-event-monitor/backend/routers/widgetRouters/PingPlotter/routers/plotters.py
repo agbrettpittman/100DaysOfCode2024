@@ -44,24 +44,6 @@ async def create_plotter(plotter: PlotterModel, db: tuple[Cursor, Connection] = 
         conn.rollback()
         handle_route_exception(e)
 
-@router.get("/by-event/{event_id}")
-async def get_plotter_by_event(event_id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
-    cursor, conn = db
-    try:
-        cursor.execute('''
-            SELECT widgets_PingPlotter_plotter.* 
-            FROM 
-                widgets_PingPlotter_plotter
-                JOIN widgetMappings ON 
-                    widgets_PingPlotter_plotter.id = widgetMappings.widget_id
-                    AND widgetMappings.name = 'PingPlotter'
-            WHERE widgetMappings.event_id = ?
-        ''', (event_id,))
-        plotter = cursor.fetchall()
-        return plotter
-    except Exception as e:
-        handle_route_exception(e)
-
 @router.get("/{plotter_id}")
 async def get_plotter(plotter_id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
     cursor, conn = db
