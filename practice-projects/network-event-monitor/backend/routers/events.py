@@ -26,6 +26,10 @@ class EventModel(BaseModel):
             return value
         except ValueError:
             raise ValueError("Invalid datetime format. Please use 'YYYY-MM-DD HH:MM:SS'")
+        
+class WidgetModel(BaseModel):
+    widgetName: str
+    widget_id: int
 
 
 @router.get("")
@@ -93,7 +97,7 @@ async def get_event(id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
     
 
 @router.put("/{id}")
-async def update_character(id: int, event: EventModel, db: tuple[Cursor, Connection] = Depends(get_db)):
+async def update_event(id: int, event: EventModel, db: tuple[Cursor, Connection] = Depends(get_db)):
     cursor, conn = db
     event = event.model_dump(exclude_unset=True)
     event["id"] = id
@@ -109,8 +113,36 @@ async def update_character(id: int, event: EventModel, db: tuple[Cursor, Connect
     
 
 @router.delete("/{id}")
-async def delete_character(id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
+async def delete_event(id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
     cursor, conn = db
     cursor.execute("DELETE FROM events WHERE id = :id", {"id": id})
     conn.commit()
     return {"message": "Event deleted successfully"}
+
+@router.get("/{id}/widgets")
+async def get_event_widgets(id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
+    cursor, conn = db
+    cursor.execute('SELECT * FROM widgetMappings WHERE event_id = :id', {"id": id})
+    widgets = cursor.fetchall()
+    return widgets
+
+@router.post("/{id}/widgets")
+async def add_widget_to_event(id: int, widget: WidgetModel, db: tuple[Cursor, Connection] = Depends(get_db)):
+    cursor, conn = db
+    widget = widget.model_dump()
+    try:
+        event_mapping_query = '''
+            INSERT INTO widgetMappings
+            (widgetName, event_id, widget_id)
+            VALUES (:widgetName, :event_id, :widget_id)
+        '''
+        event_mapping_dict = {
+            "event_id": id,
+            "widget_id": widget["widget_id"],
+            "widgetName": widget["widgetName"]
+        }
+        cursor.execute(event_mapping_query, event_mapping_dict)
+        conn.commit()
+        return widget
+    except Exception as e:
+        handle_route_exception(e)

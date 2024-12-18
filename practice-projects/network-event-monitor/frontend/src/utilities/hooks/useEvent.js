@@ -37,7 +37,6 @@ export default function useEvent({id = null, defaults = {}, onSave=()=>{}}) {
     const memoizedDefaults = useMemo(() => defaults, [JSON.stringify(defaults)])
 
     useEffect(() => {
-        console.log('useEffect')
         if (!id) {
             console.log(memoizedDefaults)
             updateState(getDefaultEvent(memoizedDefaults))

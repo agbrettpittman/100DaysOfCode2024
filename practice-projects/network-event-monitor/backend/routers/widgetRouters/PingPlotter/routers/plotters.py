@@ -12,7 +12,6 @@ router = APIRouter(
 )
 
 class PlotterModel(BaseModel):
-    event_id: int
     name: str
 
 class HostModel(BaseModel):
@@ -36,22 +35,11 @@ async def create_plotter(plotter: PlotterModel, db: tuple[Cursor, Connection] = 
         plotter["name"] = f"Untitled Ping Plotter"
     try:
         plotter_query = "INSERT INTO widgets_PingPlotter_plotter (name) VALUES (:name)"
-        cursor.execute(plotter_query, plotter)
-        
-
-        event_mapping_query = '''
-            INSERT INTO widgetMappings
-            (widgetName, event_id, widget_id)
-            VALUES ('PingPlotter', :event_id, :widget_id)
-        '''
-        event_mapping_dict = {
-            "event_id": plotter["event_id"],
-            "widget_id": cursor.lastrowid
-        }
-        cursor.execute(event_mapping_query, event_mapping_dict)
-
+        cursor.execute(plotter_query, plotter)   
+        last_id = cursor.lastrowid
         conn.commit()
-        return {"message": "Plotter created"}
+        return_dict = {"id": last_id, **plotter}
+        return return_dict
     except Exception as e:
         conn.rollback()
         handle_route_exception(e)

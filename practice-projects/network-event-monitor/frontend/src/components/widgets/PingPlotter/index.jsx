@@ -5,12 +5,18 @@ import { toast } from 'react-toastify'
 export const Title = 'Ping Plotter'
 
 export async function Create(){
-    console.log('New Ping Plotter Widget')
-    /*
-        This will need to create the new plotter
-        then grab the id of the new plotter
-        and return it
-    */
+    const PostData = {
+        name: 'New Ping Plotter',
+    }
+    const URL = '/widgets/ping-plotter/plotters'
+    try {
+        const response = await requestor.post(URL, PostData)
+        return response.data.id
+    } catch (error) {
+        toast.error('Failed to create new ping plotter')
+        console.error(error)
+        return null
+    }
 }
 
 

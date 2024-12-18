@@ -1,15 +1,19 @@
-import {useEffect, useState} from 'react'
+import {useEffect, useRef, useState} from 'react'
 import { toast } from 'react-toastify';
 import { Autocomplete, Box, Button, TextField } from '@mui/material';
-
+import { useParams } from 'react-router-dom';
+import requestor from '@utilities/requestor';
 
 const WidgetModules = import.meta.glob('/src/components/widgets/*/index.jsx');
 
 
-export default function EventWidgets({widgets = []}) {
+export default function EventWidgets() {
 
+    const [widgets, setWidgets] = useState([]);
     const [AvailableWidgets, setAvailableWidgets] = useState({});
     const [NewWidgetSelection, setNewWidgetSelection] = useState(null);
+    const WidgetModulesLoaded = useRef(false);
+    const { id } = useParams();
     const DropdownOptions = Object.keys(AvailableWidgets)
     .filter((widgetName) => AvailableWidgets[widgetName].Create)
     .map((widgetName) => ({
@@ -18,42 +22,79 @@ export default function EventWidgets({widgets = []}) {
     }));
 
     useEffect(() => {
-        loadAllWidgets();
-    }, [widgets])
+        initialLoad();
+    }, [])
 
-    async function loadAllWidgets() {
+    async function initialLoad(){
+        if (WidgetModulesLoaded.current) return
+        await loadWidgetModules();
+        await loadEventWidgets();
+    }
+
+    async function loadEventWidgets() {
+        requestor.get(`/events/${id}/widgets`,{ 
+            id: `/events/${id}/widgets`
+        }).then((response) => {
+            console.log(response.data)
+            setWidgets(response.data);
+        }).catch((error) => {
+            toast.error('Failed to get widgets for event')
+            console.error(error)
+        })
+    }
+    
+    async function loadWidgetModules() {
         let tempWidgets = {};
         for (const [path, loader] of Object.entries(WidgetModules)) {
             try {
                 const module = await loader(); // Load the module
-
+                
                 // Use the folder name as the widget key (assumes standard folder structure)
                 const widgetName = path.split('/').slice(-2, -1)[0];
-
+                
                 // Add the widget data to the widgets object
                 tempWidgets[widgetName] = {
                     Title: module.Title || widgetName,
                     Create: module.Create || undefined,
                     Component: module.default, // The main component
                 };
-
-
+                
+                
             } catch (error) {
                 console.error(`Failed to load widget module from ${path}:`, error);
             }
         }
-
+        
         setAvailableWidgets(tempWidgets);
-
+        
     }
-
+    
     async function createNewWidget() {
-        console.log(NewWidgetSelection)
         if (!NewWidgetSelection) return
         const widgetName = NewWidgetSelection.value;
         const widgetModule = AvailableWidgets[widgetName];
         if (widgetModule.Create) {
-            await widgetModule.Create();
+            const WidgetID = await widgetModule.Create();
+            if (!WidgetID) {
+                toast.error('Failed to add widget to event')
+                console.log(WidgetID)
+                return
+            }
+            const PostData = {
+                widget_id: WidgetID,
+                widgetName: widgetName,
+            }
+            requestor.post(`/events/${id}/widgets`, PostData).then(async () => {
+                toast.success(`Added ${widgetModule.Title} to event`)
+                // invalidate the cache
+                await requestor.storage.remove(`/events/${id}/widgets`)
+                
+                loadEventWidgets();
+            }).catch((error) => {
+                toast.error('Failed to add widget to event')
+                console.error(error)
+            })
+                
         }
     }
 

@@ -52,7 +52,7 @@ export default function EventPage() {
                 {Event.description || "No Description"}
             </Typography>
             <Divider />
-            <EventWidgets widgets={Event.widgets} />
+            <EventWidgets />
         </Box>
     )
 }
