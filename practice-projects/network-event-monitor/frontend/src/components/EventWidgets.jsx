@@ -1,6 +1,7 @@
 import {useEffect, useState} from 'react'
 import { toast } from 'react-toastify';
-import { Box, Button } from '@mui/material';
+import { Autocomplete, Box, Button, TextField } from '@mui/material';
+
 
 const WidgetModules = import.meta.glob('/src/components/widgets/*/index.jsx');
 
@@ -8,6 +9,13 @@ const WidgetModules = import.meta.glob('/src/components/widgets/*/index.jsx');
 export default function EventWidgets({widgets = []}) {
 
     const [AvailableWidgets, setAvailableWidgets] = useState({});
+    const [NewWidgetSelection, setNewWidgetSelection] = useState(null);
+    const DropdownOptions = Object.keys(AvailableWidgets)
+    .filter((widgetName) => AvailableWidgets[widgetName].Create)
+    .map((widgetName) => ({
+        label: AvailableWidgets[widgetName].Title,
+        value: widgetName,
+    }));
 
     useEffect(() => {
         loadAllWidgets();
@@ -39,17 +47,37 @@ export default function EventWidgets({widgets = []}) {
 
     }
 
+    async function createNewWidget() {
+        console.log(NewWidgetSelection)
+        if (!NewWidgetSelection) return
+        const widgetName = NewWidgetSelection.value;
+        const widgetModule = AvailableWidgets[widgetName];
+        if (widgetModule.Create) {
+            await widgetModule.Create();
+        }
+    }
+
     return (
         <div>
-            <Button
-                variant="contained"
-                onClick={() => {
-                    console.log('New Widget')
-                }}
-                sx={{ width: 'fit-content' }}
-            >
-                Add Widget
-            </Button>
+            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
+                <Autocomplete
+                    disablePortal
+                    options={DropdownOptions}
+                    sx={{ width: 300 }}
+                    value={NewWidgetSelection}
+                    onChange={(event, newValue) => {
+                        setNewWidgetSelection(newValue);
+                    }}
+                    renderInput={(params) => <TextField {...params} label="Widgets" />}
+                />
+                <Button
+                    variant="contained"
+                    onClick={createNewWidget}
+                    sx={{ width: 'fit-content' }}
+                >
+                    Add Widget
+                </Button>
+            </Box>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
                 {widgets.map((widget) => {
                     const { widget_id, widgetName } = widget;

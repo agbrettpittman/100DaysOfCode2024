@@ -51,6 +51,7 @@ export default function EventPage() {
             <Typography variant="body1" data-testid="description" sx={(Event.description) ? undefined : NoValueSX}>
                 {Event.description || "No Description"}
             </Typography>
+            <Divider />
             <EventWidgets widgets={Event.widgets} />
         </Box>
     )

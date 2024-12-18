@@ -5,10 +5,12 @@ import { toast } from 'react-toastify'
 export const Title = 'Ping Plotter'
 
 export async function Create(){
-    return {
-        name: Title,
-        widgetName: 'PingPlotter',
-    }
+    console.log('New Ping Plotter Widget')
+    /*
+        This will need to create the new plotter
+        then grab the id of the new plotter
+        and return it
+    */
 }
 
 
