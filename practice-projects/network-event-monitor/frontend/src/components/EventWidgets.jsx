@@ -1,12 +1,21 @@
 import {useEffect, useRef, useState, createContext} from 'react'
 import { toast } from 'react-toastify';
-import { Autocomplete, Box, Button, TextField } from '@mui/material';
+import { Autocomplete, Box, Button, TextField, Grid } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import requestor from '@utilities/requestor';
+import styled from 'styled-components';
 
 const WidgetModules = import.meta.glob('/src/components/widgets/*/index.jsx');
 
 export const WidgetsContext = createContext({});
+
+const WidgetGrid = styled(Box)`
+    display: grid;
+    gap: 16px;
+    margin-top: 16px;
+    grid-template-columns: repeat(auto-fill, 500px);
+    grid-template-rows: repeat(auto-fill, 500px);
+`;
 
 export default function EventWidgets() {
 
@@ -113,7 +122,7 @@ export default function EventWidgets() {
 
     return (
         <div>
-            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, mb: 8 }}>
                 <Autocomplete
                     disablePortal
                     options={DropdownOptions}
@@ -133,7 +142,7 @@ export default function EventWidgets() {
                 </Button>
             </Box>
             <WidgetsContext.Provider value={{ deleteWidget }}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+                <WidgetGrid>
                     {widgets.map((widget) => {
                         const { widget_id, widgetName } = widget;
                         const loadedWidget = AvailableWidgets[widgetName];
@@ -142,9 +151,13 @@ export default function EventWidgets() {
                         }   
                         
                         const { Component } = loadedWidget;
-                        return <Component key={widget.id} widgetId={widget_id} />;
+                        return (
+                            <Box key={widget.id} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 1 }}>
+                                <Component widgetId={widget_id} />
+                            </Box>
+                        );
                     })}
-                </Box>
+                </WidgetGrid>
             </WidgetsContext.Provider>
         </div>
     )

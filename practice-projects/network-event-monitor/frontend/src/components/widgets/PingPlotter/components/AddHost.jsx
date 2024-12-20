@@ -1,10 +1,10 @@
 import React, { useState, useContext } from 'react';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
-import axios from 'axios';
 import { toast } from 'react-toastify';
 import requestor from '@utilities/requestor';
 import { PingPlotterContext } from '..';
+import { Box } from '@mui/material';
 
 function AddHost(){
     const [host, setHost] = useState('');
@@ -25,17 +25,22 @@ function AddHost(){
     };
 
     return (
-        <div>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <TextField
                 label="Hostname or IP Address"
                 variant="outlined"
                 value={host}
                 onChange={(e) => setHost(e.target.value)}
+                size="small"
             />
-            <Button variant="contained" color="primary" onClick={handleAddHost}>
+            <Button 
+                variant="contained" 
+                color="primary" 
+                onClick={handleAddHost}
+            >
                 Add Host
             </Button>
-        </div>
+        </Box>
     );
 };
 

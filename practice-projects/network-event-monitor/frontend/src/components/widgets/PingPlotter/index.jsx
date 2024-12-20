@@ -3,7 +3,7 @@ import {useEffect, useState, useContext, createContext} from 'react'
 import { toast } from 'react-toastify'
 import { WidgetsContext } from '@components/EventWidgets'
 import { Delete } from '@mui/icons-material'
-import { Box, useTheme } from '@mui/material'
+import { Box, Typography, useTheme } from '@mui/material'
 import HoldIconButton from '@components/ui/HoldIconButton'
 import { transparentize } from 'polished'
 import AddHost from './components/AddHost'
@@ -62,8 +62,8 @@ export default function PingPlotter({widgetId}) {
     }
 
     return (
-        <PingPlotterContext.Provider value={{id: widgetId, HostsAdded, setHostsAdded}}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <PingPlotterContext.Provider value={{id: widgetId, HostsAdded, setHostsAdded}}>
                 <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, alignItems: 'center' }}>
                     <HoldIconButton 
                         color={InitialDeleteIconColor} 
@@ -72,11 +72,13 @@ export default function PingPlotter({widgetId}) {
                     >
                         <Delete />
                     </HoldIconButton>
-                    Ping Plotter: {Data.name}
+                    <Typography variant="h5">
+                        {Data.name}
+                    </Typography>
                 </Box>
                 <AddHost/>
                 <HostTable/>
-            </Box>
-        </PingPlotterContext.Provider>
+            </PingPlotterContext.Provider>
+        </Box>
     )
 }

@@ -72,17 +72,10 @@ export default function HostTable() {
     return (
         <TableContainer component={Paper}>
             <Table>
-                <TableHead>
-                    <TableRow>
-                        <TableCell style={{ width: '1em' }}></TableCell>
-                        <TableCell style={{ width: '1em' }}></TableCell>
-                        <TableCell></TableCell>
-                    </TableRow>
-                </TableHead>
                 <TableBody>
                     {hosts.map((host) => (
                         <TableRow key={host.id}>
-                            <TableCell>
+                            <TableCell width={'1em'}>
                                 {editHostId === host.id ? (
                                     <IconButton 
                                         onClick={() => handleSaveEdit(host.id)} 
@@ -99,7 +92,7 @@ export default function HostTable() {
                                     </IconButton>
                                 )}
                             </TableCell>
-                            <TableCell>
+                            <TableCell width={'1em'}>
                                 {editHostId === host.id ? (
                                     <IconButton 
                                         onClick={handleCancelEdit} 
