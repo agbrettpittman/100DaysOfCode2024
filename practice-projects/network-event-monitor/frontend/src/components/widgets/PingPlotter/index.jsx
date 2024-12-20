@@ -3,7 +3,9 @@ import {useEffect, useState, useContext} from 'react'
 import { toast } from 'react-toastify'
 import { WidgetsContext } from '@components/EventWidgets'
 import { Delete } from '@mui/icons-material'
-import { Box, IconButton } from '@mui/material'
+import { Box, useTheme } from '@mui/material'
+import HoldIconButton from '@components/ui/HoldIconButton'
+import { transparentize } from 'polished'
 
 export const Title = 'Ping Plotter'
 
@@ -28,6 +30,8 @@ export default function PingPlotter({widgetId}) {
     const [Data, setData] = useState({
         name: '',
     })
+    const Theme = useTheme()
+    const InitialDeleteIconColor = transparentize(0.5, Theme.palette.error.main)
 
     useEffect(() => {
         requestor.get(`/widgets/ping-plotter/plotters/${widgetId}`).then((response) => {
@@ -50,9 +54,13 @@ export default function PingPlotter({widgetId}) {
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, alignItems: 'center' }}>
-            <IconButton onClick={handleDelete} color={'error'}>
+            <HoldIconButton 
+                color={InitialDeleteIconColor} 
+                hoverColor={Theme.palette.error.main} 
+                onComplete={handleDelete}
+            >
                 <Delete />
-            </IconButton>
+            </HoldIconButton>
             Ping Plotter: {Data.name}
         </Box>
         
