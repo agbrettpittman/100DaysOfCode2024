@@ -110,7 +110,7 @@ async def add_plotter_host(
         handle_route_exception(e)
 
 @router.put("/{plotter_id}/hosts/{host_id}")
-async def update_plotter_hosts(
+async def update_plotter_host(
     plotter_id: int, host_id: int, host: HostModel, 
     db: tuple[Cursor, Connection] = Depends(get_db)
 ):
@@ -129,7 +129,21 @@ async def update_plotter_hosts(
         return host
     except Exception as e:
         handle_route_exception(e)
-                               
+
+@router.delete("/{plotter_id}/hosts/{host_id}")
+async def delete_plotter_host(plotter_id: int, host_id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
+    cursor, conn = db
+    try:
+        cursor.execute(
+            "DELETE FROM widgets_PingPlotter_hosts "
+            "WHERE plotter_id = ? AND id = ?",
+            (plotter_id, host_id)
+        )
+        conn.commit()
+        return {"message": "Host deleted successfully"}
+    except Exception as e:
+        handle_route_exception(e)
+
 @router.get("/{plotter_id}/results")
 async def get_plotter_results(plotter_id: int):
     return {"message": f"Get plotter {plotter_id} results. This will become a web socket"}
