@@ -1,11 +1,14 @@
 from fastapi import APIRouter
 import os, importlib.util
+import logging
 
 
 router = APIRouter(
     prefix="/widgets",
     responses={404: {"description": "Not found"}},
 )
+
+logger = logging.getLogger("uvicorn")
 
 widget_routers_path = './routers/widgetRouters'
 
@@ -25,5 +28,5 @@ for widget_router_dir in os.listdir(widget_routers_path):
     if hasattr(module, "router"):
         module_title = module.title if hasattr(module, "title") else widget_router_dir
         router.include_router(module.router)
-        print(f"Loaded router for {module_title}")
+        logger.info(f"Loaded router for {module_title}")
     

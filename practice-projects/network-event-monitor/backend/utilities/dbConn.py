@@ -1,6 +1,8 @@
-import sqlite3, contextlib, os, importlib.util
+import sqlite3, contextlib, os, logging, importlib.util
 from fastapi import Depends
 from dotenv import load_dotenv
+
+logger = logging.getLogger("uvicorn")
 
 load_dotenv()
 
@@ -57,7 +59,7 @@ def initialize_database():
             if hasattr(module, 'main'): 
                 module.main(cursor)
                 module_title = module.title if hasattr(module, 'title') else file
-                print(f"Loaded tables for widget: {module_title}")
+                logger.info(f"Loaded tables for widget: {module_title}")
 
         db.commit()
     except Exception as e:
