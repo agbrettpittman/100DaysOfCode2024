@@ -1,11 +1,13 @@
 import requestor from '@utilities/requestor'
-import {useEffect, useState, useContext} from 'react'
+import {useEffect, useState, useContext, createContext} from 'react'
 import { toast } from 'react-toastify'
 import { WidgetsContext } from '@components/EventWidgets'
 import { Delete } from '@mui/icons-material'
 import { Box, useTheme } from '@mui/material'
 import HoldIconButton from '@components/ui/HoldIconButton'
 import { transparentize } from 'polished'
+import AddHost from './components/AddHost'
+import HostTable from './components/HostTable'
 
 export const Title = 'Ping Plotter'
 
@@ -24,12 +26,19 @@ export async function Create(){
     }
 }
 
+export const PingPlotterContext = createContext({
+    id: null,
+    HostsAdded: [],
+    setHostsAdded: () => {},
+})
+
 export default function PingPlotter({widgetId}) {
 
     const { deleteWidget } = useContext(WidgetsContext)
     const [Data, setData] = useState({
         name: '',
     })
+    const [HostsAdded, setHostsAdded] = useState([])
     const Theme = useTheme()
     const InitialDeleteIconColor = transparentize(0.5, Theme.palette.error.main)
 
@@ -53,16 +62,21 @@ export default function PingPlotter({widgetId}) {
     }
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, alignItems: 'center' }}>
-            <HoldIconButton 
-                color={InitialDeleteIconColor} 
-                hoverColor={Theme.palette.error.main} 
-                onComplete={handleDelete}
-            >
-                <Delete />
-            </HoldIconButton>
-            Ping Plotter: {Data.name}
-        </Box>
-        
+        <PingPlotterContext.Provider value={{id: widgetId, HostsAdded, setHostsAdded}}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, alignItems: 'center' }}>
+                    <HoldIconButton 
+                        color={InitialDeleteIconColor} 
+                        hoverColor={Theme.palette.error.main} 
+                        onComplete={handleDelete}
+                    >
+                        <Delete />
+                    </HoldIconButton>
+                    Ping Plotter: {Data.name}
+                </Box>
+                <AddHost/>
+                <HostTable/>
+            </Box>
+        </PingPlotterContext.Provider>
     )
 }
