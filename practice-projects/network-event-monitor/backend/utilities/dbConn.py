@@ -48,19 +48,6 @@ def initialize_database():
             )
         ''')
 
-        # execute the main function in every file in the widgetUtils directory
-        widget_tables_dir = './utilities/widgetTables'
-        for file in os.listdir(widget_tables_dir):
-            if not file.endswith('.py'): continue
-            file_location = f'{widget_tables_dir}/{file}'
-            spec = importlib.util.spec_from_file_location(file, file_location)
-            module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(module)
-            if hasattr(module, 'main'): 
-                module.main(cursor)
-                module_title = module.title if hasattr(module, 'title') else file
-                logger.info(f"Loaded tables for widget: {module_title}")
-
         db.commit()
     except Exception as e:
         print(e)

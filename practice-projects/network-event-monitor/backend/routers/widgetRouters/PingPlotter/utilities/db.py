@@ -1,9 +1,4 @@
-import sqlite3, contextlib, os, importlib.util
-from fastapi import Depends
-from dotenv import load_dotenv
-
-title = "Ping Plotter"
-def main(cursor):
+def initialize_database(cursor):
 
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS widgets_PingPlotter_plotter (

@@ -1,6 +1,6 @@
+import os, logging, importlib.util
 from fastapi import APIRouter
-import os, importlib.util
-import logging
+from utilities.dbConn import get_db
 
 
 router = APIRouter(
@@ -29,4 +29,24 @@ for widget_router_dir in os.listdir(widget_routers_path):
         module_title = module.title if hasattr(module, "title") else widget_router_dir
         router.include_router(module.router)
         logger.info(f"Loaded router for {module_title}")
+
+        if hasattr(module, "db_init"):
+            db_gen = get_db()  # Get the generator
+            try:
+                cursor, conn = next(db_gen)  # Retrieve the cursor and connection
+                try:
+                    module.db_init(cursor)
+                    conn.commit()
+                except Exception as e:
+                    conn.rollback()
+                    logger.error(f"Failed to initialize database for {module_title}")
+                    logger.error(e)
+            finally:
+                # Ensure the generator is properly finalized to close the database
+                try:
+                    next(db_gen)
+                except StopIteration:
+                    pass
+
+            logger.info(f"Initialized database for {module_title}")
     
