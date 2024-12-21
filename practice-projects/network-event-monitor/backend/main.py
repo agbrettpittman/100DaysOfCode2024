@@ -22,6 +22,10 @@ app.add_middleware(
 app.include_router(events.router)
 app.include_router(widgetRouterRoot.router)
 
+active_events = {}
+
 @app.on_event("startup")
 async def startup_event():
     initialize_database()
+    widgetRouterRoot.include_widget_routers()
+
