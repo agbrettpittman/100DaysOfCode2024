@@ -49,6 +49,7 @@ def initialize_database():
         ''')
 
         db.commit()
+        logger.info("Initialized database")
     except Exception as e:
         print(e)
     finally:
