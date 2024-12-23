@@ -2,7 +2,7 @@ import logging
 
 logger = logging.getLogger("uvicorn")
 
-class New:
+class create_tracker:
 
     _instance = None
     
@@ -17,4 +17,7 @@ class New:
         self._instance = self
         self.active_events = {}
 
-active_event_tracker = New()
+    def get_active_events(self):
+        return self.active_events
+
+active_event_tracker = create_tracker()

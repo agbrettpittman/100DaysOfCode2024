@@ -1,6 +1,7 @@
-import sqlite3, contextlib, os, logging, importlib.util
+import sqlite3,os, logging
 from fastapi import Depends
 from dotenv import load_dotenv
+from contextlib import contextmanager
 
 logger = logging.getLogger("uvicorn")
 
@@ -11,46 +12,53 @@ if (not os.getenv("DB_PATH")):
 DATABASE_URL = os.getenv("DB_PATH")
 
 def db_dep():
-    with contextlib.closing(sqlite3.connect(DATABASE_URL, check_same_thread=False)) as conn:
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-        try:
-            yield cursor, conn
-        finally:
-            conn.close()
+    conn = sqlite3.connect(DATABASE_URL, check_same_thread=False)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    try:
+        yield cursor, conn
+    finally:
+        conn.close()
+
+@contextmanager
+def get_db():
+    conn = sqlite3.connect(DATABASE_URL, check_same_thread=False)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    try:
+        yield cursor, conn
+    finally:
+        conn.close()
 
 def initialize_database():
-    db = sqlite3.connect(DATABASE_URL, check_same_thread=False)
-    db.execute('PRAGMA journal_mode=WAL')
-    db.commit()
-    db.row_factory = sqlite3.Row
-    try:
-        cursor = db.cursor()
-        
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS events (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                start TEXT DEFAULT CURRENT_TIMESTAMP,
-                end TEXT NOT NULL,
-                eventName TEXT NOT NULL,
-                description TEXT,
-                referenceID TEXT NOT NULL UNIQUE
-            )
-        ''')
+    with get_db() as (cursor, conn):
+        conn.execute('PRAGMA journal_mode=WAL')
+        conn.commit()
+        try:
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS events (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    start TEXT DEFAULT CURRENT_TIMESTAMP,
+                    end TEXT NOT NULL,
+                    eventName TEXT NOT NULL,
+                    description TEXT,
+                    referenceID TEXT NOT NULL UNIQUE
+                )
+            ''')
 
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS widgetMappings (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                widgetName TEXT NOT NULL,
-                event_id INTEGER NOT NULL,
-                widget_id INTEGER NOT NULL,
-                FOREIGN KEY (event_id) REFERENCES events (id)
-            )
-        ''')
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS widgetMappings (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    widgetName TEXT NOT NULL,
+                    event_id INTEGER NOT NULL,
+                    widget_id INTEGER NOT NULL,
+                    FOREIGN KEY (event_id) REFERENCES events (id)
+                )
+            ''')
 
-        db.commit()
-        logger.info("Initialized database")
-    except Exception as e:
-        print(e)
-    finally:
-        db.close()
+            conn.commit()
+            logger.info("Initialized database")
+        except Exception as e:
+            conn.rollback()
+            logger.error("Failed to initialize database")
+            logger.error(e)
