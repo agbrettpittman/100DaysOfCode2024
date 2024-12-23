@@ -1,6 +1,7 @@
 import os, logging, importlib.util
 from fastapi import APIRouter
-from utilities.dbConn import db_dep, get_db
+from utilities.dbConn import get_db
+from utilities.activeEventTracker import active_event_tracker
 
 
 router = APIRouter(
@@ -24,22 +25,40 @@ def include_widget_routers():
         module = importlib.util.module_from_spec(spec)
         module.__package__ = f"routers.widgetRouters.{widget_router_dir}"
         spec.loader.exec_module(module)
+
+        required_elements = ["router", "start", "stop"]
+        missing_elements = []
+        # if the widget does not have a required element, log an error and skip it
+        for element in required_elements:
+            if not hasattr(module, element):
+                missing_elements.append(element)
+        if missing_elements:
+            missing_elements_str = ", ".join(missing_elements)
+            logger.error(f"Widget router {widget_router_dir} is missing required elements: {missing_elements_str}. Skipping...")
+            continue
         
         # Include the router from the module
-        if hasattr(module, "router"):
-            module_title = module.title if hasattr(module, "title") else widget_router_dir
-            router.include_router(module.router)
-            logger.info(f"Loaded router for {module_title}")
+        module_title = module.title if hasattr(module, "title") else widget_router_dir
+        router.include_router(module.router)
+        logger.info(f"Loaded router for {module_title}")
 
-            if hasattr(module, "db_init"):
-                with get_db() as (cursor, conn):
-                    try:
-                        module.db_init(cursor)
-                        conn.commit()
-                    except Exception as e:
-                        conn.rollback()
-                        logger.error(f"Failed to initialize database for {module_title}")
-                        logger.error(e)
+        # Register the widget with the active event tracker
+        active_event_tracker.register_widget(
+            name=widget_router_dir,
+            start_function=module.start,
+            stop_function=module.stop
+        )
+        logger.info(f"Registered widget {module_title} with active event tracker")
 
-                logger.info(f"Initialized database for {module_title}")
+        if hasattr(module, "db_init"):
+            with get_db() as (cursor, conn):
+                try:
+                    module.db_init(cursor)
+                    conn.commit()
+                except Exception as e:
+                    conn.rollback()
+                    logger.error(f"Failed to initialize database for {module_title}")
+                    logger.error(e)
+
+            logger.info(f"Initialized database for {module_title}")
     

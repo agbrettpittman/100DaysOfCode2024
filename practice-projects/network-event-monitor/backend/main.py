@@ -3,7 +3,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from utilities.dbConn import initialize_database
-from utilities.active_event_tracker import active_event_tracker
 from routers import events, widgetRouterRoot
 import os
 

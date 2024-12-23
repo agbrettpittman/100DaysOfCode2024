@@ -6,6 +6,12 @@ title = "Ping Plotter"
 
 db_init = initialize_database
 
+def start(id:int = None):
+    print(f"Ping Plotter router {id} started")
+
+def stop(id:int = None):
+    print(f"Ping Plotter router {id} stopped")
+
 router = APIRouter(
     prefix="/ping-plotter",
     tags=[title],
