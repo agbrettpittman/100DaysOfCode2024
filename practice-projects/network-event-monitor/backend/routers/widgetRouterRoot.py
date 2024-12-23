@@ -1,6 +1,6 @@
 import os, logging, importlib.util
 from fastapi import APIRouter
-from utilities.dbConn import get_db
+from utilities.dbConn import db_dep
 
 
 router = APIRouter(
@@ -32,7 +32,7 @@ def include_widget_routers():
             logger.info(f"Loaded router for {module_title}")
 
             if hasattr(module, "db_init"):
-                db_gen = get_db()  # Get the generator
+                db_gen = db_dep()  # Get the generator
                 try:
                     cursor, conn = next(db_gen)  # Retrieve the cursor and connection
                     try:

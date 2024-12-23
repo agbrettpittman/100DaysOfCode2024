@@ -2,7 +2,7 @@ import inspect, random, string
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, field_validator
 from sqlite3 import Connection, Cursor
-from utilities.dbConn import get_db
+from utilities.dbConn import db_dep
 from utilities.utils import handle_route_exception
 from datetime import datetime, timedelta
 
@@ -33,7 +33,7 @@ class WidgetModel(BaseModel):
 
 
 @router.get("")
-async def get_all_events(db: tuple[Cursor, Connection] = Depends(get_db)):
+async def get_all_events(db: tuple[Cursor, Connection] = Depends(db_dep)):
     cursor, conn = db
     try:
         cursor.execute("SELECT * FROM events ORDER BY start DESC")
@@ -44,7 +44,7 @@ async def get_all_events(db: tuple[Cursor, Connection] = Depends(get_db)):
 
 
 @router.post("")
-async def create_event(event: EventModel, db: tuple[Cursor, Connection] = Depends(get_db)):
+async def create_event(event: EventModel, db: tuple[Cursor, Connection] = Depends(db_dep)):
     cursor, conn = db
     event = event.model_dump()
     # generate a random 4 character string to attach to the current date for the referenceID and event name
@@ -81,7 +81,7 @@ async def create_event(event: EventModel, db: tuple[Cursor, Connection] = Depend
     
 
 @router.get("/{id}")
-async def get_event(id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
+async def get_event(id: int, db: tuple[Cursor, Connection] = Depends(db_dep)):
     cursor, conn = db
     cursor.execute("SELECT * FROM events WHERE id = :id", {"id": id})
     event = cursor.fetchone()
@@ -97,7 +97,7 @@ async def get_event(id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
     
 
 @router.put("/{id}")
-async def update_event(id: int, event: EventModel, db: tuple[Cursor, Connection] = Depends(get_db)):
+async def update_event(id: int, event: EventModel, db: tuple[Cursor, Connection] = Depends(db_dep)):
     cursor, conn = db
     event = event.model_dump(exclude_unset=True)
     event["id"] = id
@@ -113,21 +113,21 @@ async def update_event(id: int, event: EventModel, db: tuple[Cursor, Connection]
     
 
 @router.delete("/{id}")
-async def delete_event(id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
+async def delete_event(id: int, db: tuple[Cursor, Connection] = Depends(db_dep)):
     cursor, conn = db
     cursor.execute("DELETE FROM events WHERE id = :id", {"id": id})
     conn.commit()
     return {"message": "Event deleted successfully"}
 
 @router.get("/{id}/widgets")
-async def get_event_widgets(id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
+async def get_event_widgets(id: int, db: tuple[Cursor, Connection] = Depends(db_dep)):
     cursor, conn = db
     cursor.execute('SELECT * FROM widgetMappings WHERE event_id = :id', {"id": id})
     widgets = cursor.fetchall()
     return widgets
 
 @router.post("/{id}/widgets")
-async def add_widget_to_event(id: int, widget: WidgetModel, db: tuple[Cursor, Connection] = Depends(get_db)):
+async def add_widget_to_event(id: int, widget: WidgetModel, db: tuple[Cursor, Connection] = Depends(db_dep)):
     cursor, conn = db
     widget = widget.model_dump()
     try:
@@ -148,7 +148,7 @@ async def add_widget_to_event(id: int, widget: WidgetModel, db: tuple[Cursor, Co
         handle_route_exception(e)
 
 @router.delete("/{id}/widgets/{widget_id}")
-async def remove_widget_from_event(id: int, widget_id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
+async def remove_widget_from_event(id: int, widget_id: int, db: tuple[Cursor, Connection] = Depends(db_dep)):
     cursor, conn = db
     original_widget_query = '''
         SELECT * FROM widgetMappings

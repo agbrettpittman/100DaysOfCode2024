@@ -20,13 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+initialize_database()
 app.include_router(events.router)
+widgetRouterRoot.include_widget_routers()
 app.include_router(widgetRouterRoot.router)
-
-active_events = {}
-
-@app.on_event("startup")
-async def startup_event():
-    initialize_database()
-    widgetRouterRoot.include_widget_routers()
-

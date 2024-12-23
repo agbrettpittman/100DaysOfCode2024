@@ -10,14 +10,14 @@ if (not os.getenv("DB_PATH")):
     raise Exception("DB_PATH environment variable not set")
 DATABASE_URL = os.getenv("DB_PATH")
 
-def get_db():
-    with contextlib.closing(sqlite3.connect(DATABASE_URL, check_same_thread=False)) as db:
-        db.row_factory = sqlite3.Row
-        cursor = db.cursor()
+def db_dep():
+    with contextlib.closing(sqlite3.connect(DATABASE_URL, check_same_thread=False)) as conn:
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
         try:
-            yield cursor, db
+            yield cursor, conn
         finally:
-            db.close()
+            conn.close()
 
 def initialize_database():
     db = sqlite3.connect(DATABASE_URL, check_same_thread=False)

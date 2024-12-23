@@ -1,6 +1,6 @@
 import ipaddress
 from fastapi import APIRouter, Depends, HTTPException
-from utilities.dbConn import get_db
+from utilities.dbConn import db_dep
 from utilities.utils import handle_route_exception
 from ..utilities.general import is_valid_hostname
 from sqlite3 import Connection, Cursor
@@ -28,7 +28,7 @@ class HostModel(BaseModel):
             return value
 
 @router.post("")
-async def create_plotter(plotter: PlotterModel, db: tuple[Cursor, Connection] = Depends(get_db)):
+async def create_plotter(plotter: PlotterModel, db: tuple[Cursor, Connection] = Depends(db_dep)):
     cursor, conn = db
     plotter = plotter.model_dump()
     if not plotter["name"]:
@@ -45,18 +45,19 @@ async def create_plotter(plotter: PlotterModel, db: tuple[Cursor, Connection] = 
         handle_route_exception(e)
 
 @router.get("/{plotter_id}")
-async def get_plotter(plotter_id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
+async def get_plotter(plotter_id: int, db: tuple[Cursor, Connection] = Depends(db_dep)):
     cursor, conn = db
     try:
         cursor.execute("SELECT * FROM widgets_PingPlotter_plotter WHERE id = ?", (plotter_id,))
         plotter = cursor.fetchone()
         return plotter
     except Exception as e:
+        print(e)
         handle_route_exception(e)
 
 @router.put("/{plotter_id}")
 async def update_plotter(
-    plotter_id: int, plotter: PlotterModel, db: tuple[Cursor, Connection] = Depends(get_db)
+    plotter_id: int, plotter: PlotterModel, db: tuple[Cursor, Connection] = Depends(db_dep)
 ):
     cursor, conn = db
     plotter = plotter.model_dump(exclude_unset=True)
@@ -74,7 +75,7 @@ async def update_plotter(
         handle_route_exception(e)
 
 @router.delete("/{plotter_id}")
-async def delete_plotter(plotter_id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
+async def delete_plotter(plotter_id: int, db: tuple[Cursor, Connection] = Depends(db_dep)):
     cursor, conn = db
     try:
         cursor.execute("DELETE FROM widgets_PingPlotter_plotter WHERE id = ?", (plotter_id,))
@@ -84,7 +85,7 @@ async def delete_plotter(plotter_id: int, db: tuple[Cursor, Connection] = Depend
         handle_route_exception(e)
 
 @router.get("/{plotter_id}/hosts")
-async def get_plotter_hosts(plotter_id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
+async def get_plotter_hosts(plotter_id: int, db: tuple[Cursor, Connection] = Depends(db_dep)):
     cursor, conn = db
     try:
         cursor.execute("SELECT * FROM widgets_PingPlotter_hosts WHERE plotter_id = ?", (plotter_id,))
@@ -95,7 +96,7 @@ async def get_plotter_hosts(plotter_id: int, db: tuple[Cursor, Connection] = Dep
 
 @router.post("/{plotter_id}/hosts")
 async def add_plotter_host(
-    plotter_id: int, host: HostModel, db: tuple[Cursor, Connection] = Depends(get_db)
+    plotter_id: int, host: HostModel, db: tuple[Cursor, Connection] = Depends(db_dep)
 ):
     cursor, conn = db
     host = host.model_dump()
@@ -112,7 +113,7 @@ async def add_plotter_host(
 @router.put("/{plotter_id}/hosts/{host_id}")
 async def update_plotter_host(
     plotter_id: int, host_id: int, host: HostModel, 
-    db: tuple[Cursor, Connection] = Depends(get_db)
+    db: tuple[Cursor, Connection] = Depends(db_dep)
 ):
     cursor, conn = db
     host = host.model_dump(exclude_unset=True)
@@ -131,7 +132,7 @@ async def update_plotter_host(
         handle_route_exception(e)
 
 @router.delete("/{plotter_id}/hosts/{host_id}")
-async def delete_plotter_host(plotter_id: int, host_id: int, db: tuple[Cursor, Connection] = Depends(get_db)):
+async def delete_plotter_host(plotter_id: int, host_id: int, db: tuple[Cursor, Connection] = Depends(db_dep)):
     cursor, conn = db
     try:
         cursor.execute(
