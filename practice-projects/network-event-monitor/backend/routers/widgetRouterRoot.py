@@ -1,7 +1,7 @@
 import os, logging, importlib.util
 from fastapi import APIRouter
 from utilities.dbConn import get_db
-from utilities.activeEventTracker import active_event_tracker
+from utilities.activeEventTracker import active_event_handler
 
 
 router = APIRouter(
@@ -20,11 +20,15 @@ def include_widget_routers():
         router_index_path = os.path.join(subdir_path, "routerIndex.py")
         
         if not os.path.isdir(subdir_path) or not os.path.isfile(router_index_path): continue
-        # Import the routerIndex.py module
         spec = importlib.util.spec_from_file_location(f"{widget_router_dir}.routerIndex", router_index_path)
         module = importlib.util.module_from_spec(spec)
         module.__package__ = f"routers.widgetRouters.{widget_router_dir}"
         spec.loader.exec_module(module)
+
+        # Get the title of the module
+        module_title = module.title if hasattr(module, "title") else widget_router_dir
+
+        logger.info(f"Loading {module_title} widget")
 
         required_elements = ["router", "start", "stop"]
         missing_elements = []
@@ -38,12 +42,12 @@ def include_widget_routers():
             continue
         
         # Include the router from the module
-        module_title = module.title if hasattr(module, "title") else widget_router_dir
+        
         router.include_router(module.router)
         logger.info(f"Loaded router for {module_title}")
 
         # Register the widget with the active event tracker
-        active_event_tracker.register_widget(
+        active_event_handler.register_widget(
             name=widget_router_dir,
             start_function=module.start,
             stop_function=module.stop
@@ -61,4 +65,6 @@ def include_widget_routers():
                     logger.error(e)
 
             logger.info(f"Initialized database for {module_title}")
+
+    active_event_handler.activate()
     
