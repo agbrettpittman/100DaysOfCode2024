@@ -1,4 +1,4 @@
-import logging, threading, time
+import logging, threading, time, asyncio
 from datetime import datetime
 from .dbConn import get_db
 
@@ -21,16 +21,25 @@ class create_handler:
 
     def activate(self):
         logger.info("Activating Active Event Tracker")
-        def cron_job():
-            while True:
-                temp_active_events = self.get_active_events()
-                print(temp_active_events)
-                time.sleep(60 - time.time() % 60)  # Sleep until the start of the next minute
 
-        thread = threading.Thread(target=cron_job, daemon=True)
+        def start_active_event_getter():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+
+            async def get_active_event_loop():
+                while True:
+                    await self.get_active_events()
+                    await asyncio.sleep(60 - time.time() % 60)  # Sleep until the next minute
+
+            try:
+                loop.run_until_complete(get_active_event_loop())  # Run the periodic task
+            finally:
+                loop.close()
+
+        thread = threading.Thread(target=start_active_event_getter, daemon=True)
         thread.start()
 
-    def get_active_events(self):
+    async def get_active_events(self):
         logger.info("Getting active events")
         found_events = []
         found_widgets = []
@@ -94,7 +103,7 @@ class create_handler:
                             "error": str(e),
                             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                         })
-                        logger.error(f"Failed to start widget {widget}: {e}")
+                        logger.error(f"Failed to start widget {widget['widgetName']}: {e}")
                         time.sleep(5)
         
     def register_widget(self, name, start_function, stop_function):
