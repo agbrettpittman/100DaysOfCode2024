@@ -12,6 +12,8 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
+plotters_socket = socket_handler()
+
 class PlotterModel(BaseModel):
     name: str
 
@@ -44,6 +46,10 @@ async def create_plotter(plotter: PlotterModel, db: tuple[Cursor, Connection] = 
     except Exception as e:
         conn.rollback()
         handle_route_exception(e)
+
+@router.websocket("/ws/{plotter_id}")
+async def get_plotter_results(websocket: WebSocket, plotter_id: int):
+    await plotters_socket.new_connection(websocket, plotter_id)
 
 @router.get("/{plotter_id}")
 async def get_plotter(plotter_id: int, db: tuple[Cursor, Connection] = Depends(db_dep)):
@@ -146,8 +152,6 @@ async def delete_plotter_host(plotter_id: int, host_id: int, db: tuple[Cursor, C
     except Exception as e:
         handle_route_exception(e)
 
-@router.get("/ws/{plotter_id}")
-async def get_plotter_results(websocket: WebSocket, plotter_id: int):
-    await socket_handler.new_connection(websocket, plotter_id)
+
 
 
