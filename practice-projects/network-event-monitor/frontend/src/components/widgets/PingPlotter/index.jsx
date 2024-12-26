@@ -39,11 +39,13 @@ export default function PingPlotter({widgetId}) {
         name: '',
     })
     const [HostsAdded, setHostsAdded] = useState([])
+    const [WebsocketConnection, setWebsocketConnection] = useState(null)
     const Theme = useTheme()
     const InitialDeleteIconColor = transparentize(0.5, Theme.palette.error.main)
+    const RouterRoot = "/widgets/ping-plotter/plotters"
 
     useEffect(() => {
-        requestor.get(`/widgets/ping-plotter/plotters/${widgetId}`).then((response) => {
+        requestor.get(`${RouterRoot}/${widgetId}`).then((response) => {
             setData(response.data)
         }).catch((error) => {
             toast.error('Failed to get ping plotter data')
@@ -51,9 +53,35 @@ export default function PingPlotter({widgetId}) {
         })
     }, [widgetId])
 
+    useEffect(() => {
+        // Create socket connection
+        const SocketBase = import.meta.env.VITE_APP_SOCKET_BASE
+        const socket = new WebSocket(`${SocketBase}${RouterRoot}/ws/${widgetId}`)
+
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data)
+            console.log(data)
+        }
+
+        socket.onerror = (event) => {
+            toast.error('Failed to connect to ping plotter websocket')
+            console.error(event)
+        }
+
+        socket.onclose = (event) => {
+            console.log(event)
+        }
+
+        setWebsocketConnection(socket)
+
+        return () => {
+            socket.close()
+        }
+    }, [widgetId])
+
     async function handleDelete() {
         try {
-            await requestor.delete(`/widgets/ping-plotter/plotters/${widgetId}`)
+            await requestor.delete(`${RouterRoot}/${widgetId}`)
             deleteWidget(widgetId)
         } catch (error) {
             toast.error('Failed to delete ping plotter')
