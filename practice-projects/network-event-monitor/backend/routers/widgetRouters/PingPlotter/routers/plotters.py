@@ -1,8 +1,9 @@
 import ipaddress
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, WebSocket
 from utilities.dbConn import db_dep
 from utilities.utils import handle_route_exception
 from ..utilities.general import is_valid_hostname
+from ..utilities.plotterSocket import socket_handler
 from sqlite3 import Connection, Cursor
 from pydantic import BaseModel, field_validator
 
@@ -145,8 +146,8 @@ async def delete_plotter_host(plotter_id: int, host_id: int, db: tuple[Cursor, C
     except Exception as e:
         handle_route_exception(e)
 
-@router.get("/{plotter_id}/results")
-async def get_plotter_results(plotter_id: int):
-    return {"message": f"Get plotter {plotter_id} results. This will become a web socket"}
+@router.get("/ws/{plotter_id}")
+async def get_plotter_results(websocket: WebSocket, plotter_id: int):
+    await socket_handler.new_connection(websocket, plotter_id)
 
 

@@ -1,6 +1,23 @@
 import threading, time, aioping, asyncio
 from utilities.dbConn import get_db
 
+class NewPlotterRunner:
+
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+    
+    def __init__(self):
+        self._instance = self
+        self.running_plotters = {}
+
+    def add_plotter(self, id:int = None):
+        self.running_plotters[id] = Plotter(id)
+        print(f"Ping Plotter router {id} started")
+
 class Plotter:
 
     sleep_seconds = 15
@@ -37,3 +54,5 @@ class Plotter:
             tasks = [self.ping_host(host) for host in self.hosts]
             await asyncio.gather(*tasks)
             await asyncio.sleep(self.sleep_seconds)
+
+plotter_runner = NewPlotterRunner()
