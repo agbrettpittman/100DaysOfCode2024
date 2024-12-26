@@ -3,7 +3,6 @@ from fastapi import APIRouter, Depends, HTTPException, WebSocket
 from utilities.dbConn import db_dep
 from utilities.utils import handle_route_exception
 from ..utilities.general import is_valid_hostname
-from ..utilities.plotterSocket import socket_handler
 from sqlite3 import Connection, Cursor
 from pydantic import BaseModel, field_validator
 
@@ -11,8 +10,6 @@ router = APIRouter(
     prefix="/plotters",
     responses={404: {"description": "Not found"}},
 )
-
-plotters_socket = socket_handler()
 
 class PlotterModel(BaseModel):
     name: str
@@ -46,10 +43,6 @@ async def create_plotter(plotter: PlotterModel, db: tuple[Cursor, Connection] = 
     except Exception as e:
         conn.rollback()
         handle_route_exception(e)
-
-@router.websocket("/ws/{plotter_id}")
-async def get_plotter_results(websocket: WebSocket, plotter_id: int):
-    await plotters_socket.new_connection(websocket, plotter_id)
 
 @router.get("/{plotter_id}")
 async def get_plotter(plotter_id: int, db: tuple[Cursor, Connection] = Depends(db_dep)):

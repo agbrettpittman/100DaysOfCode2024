@@ -9,16 +9,16 @@ class socket_handler:
     def __init__(self):
         self.socket_connections = {}
 
-    async def broadcast_update(self, plotter_id: int, data: Dict):
-        for connection in self.socket_connections.get(plotter_id, []):
+    async def broadcast_update(self, event_id: int, data: Dict):
+        for connection in self.socket_connections.get(event_id, []):
             await connection.send_json(data)
 
-    async def new_connection(self, websocket: WebSocket, plotter_id: int):
+    async def new_connection(self, websocket: WebSocket, event_id: int):
         await websocket.accept()
-        print(f"New connection for plotter {plotter_id}")
-        if plotter_id not in self.socket_connections:
-            self.socket_connections[plotter_id] = []
-        self.socket_connections[plotter_id].append(websocket)
+        print(f"New connection for event {event_id}")
+        if event_id not in self.socket_connections:
+            self.socket_connections[event_id] = []
+        self.socket_connections[event_id].append(websocket)
 
         try:
             while True:

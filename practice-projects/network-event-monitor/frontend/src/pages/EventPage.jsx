@@ -7,6 +7,7 @@ import { transparentize } from 'polished'
 import HoldIconButton from '@components/ui/HoldIconButton'
 import PingPlotter from '@components/widgets/PingPlotter'
 import EventWidgets from '@components/EventWidgets'
+import { useEffect, useState } from 'react'
 
 const NoValueSX = { color: 'text.disabled', fontStyle: 'italic' }
 
@@ -14,10 +15,38 @@ export default function EventPage() {
     const { id } = useParams()
     const Theme = useTheme()
     const {Event, deleteEvent } = useEvent({id})
+    const [WebsocketConnection, setWebsocketConnection] = useState(null)
     function getDisplayDatetime(type) {
         return Event[type].format('MMMM Do YYYY, h:mm:ss a')
     }
     const InitialDeleteIconColor = transparentize(0.5, Theme.palette.error.main)
+
+    useEffect(() => {
+        // Create socket connection
+        const SocketBase = import.meta.env.VITE_APP_SOCKET_BASE
+        const socket = new WebSocket(`${SocketBase}/events/ws/${id}`)
+
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data)
+            console.log(data)
+        }
+
+        socket.onerror = (event) => {
+            toast.error('Failed to connect to ping plotter websocket')
+            console.error(event)
+        }
+
+        socket.onclose = (event) => {
+            console.log(event)
+        }
+
+        setWebsocketConnection(socket)
+
+        return () => {
+            socket.close()
+        }
+    }, [id])
+
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
