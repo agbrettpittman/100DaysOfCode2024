@@ -1,5 +1,6 @@
 import threading, time, aioping, asyncio
 from utilities.dbConn import get_db
+from utilities.eventSocketHandler import event_sockets
 
 class NewPlotterRunner:
 
@@ -14,18 +15,18 @@ class NewPlotterRunner:
         self._instance = self
         self.running_plotters = {}
 
-    def add_plotter(self, id:int = None):
-        self.running_plotters[id] = Plotter(id)
+    def add_plotter(self, id:int = None, event_id:int = None):
+        self.running_plotters[id] = Plotter(id, event_id)
         print(f"Ping Plotter router {id} started")
 
 class Plotter:
 
     sleep_seconds = 15
 
-    def __init__(self, id: int):
+    def __init__(self, id: int, event_id: int):
         self.id = id
+        self.event_id = event_id
         self.hosts = []
-
 
         with get_db() as (cursor, conn):
             cursor.execute('''
@@ -41,13 +42,25 @@ class Plotter:
         print(f"Plotter {self.id} created. Hosts: {self.hosts}")
 
     async def ping_host(self, host):
+        message = ""
+        result = ""
         try:
             delay = await aioping.ping(host['host'])  # Returns delay in seconds
-            print(f"Pong from {host['host']} for plotter {self.id}: {delay*1000:.2f} ms")
+            message = f"Pong from {host['host']} for plotter {self.id}: {delay*1000:.2f} ms"
+            result="success"
         except TimeoutError:
-            print(f"Ping to {host['host']} for plotter {self.id} timed out.")
+            message = f"Ping to {host['host']} for plotter {self.id} timed out"
+            result="timeout"
         except Exception as e:
-            print(f"Error pinging {host['host']} for plotter {self.id}: {e}")
+            message = f"Error pinging {host['host']} for plotter {self.id}: {e}"
+            result="error"
+
+        await event_sockets.broadcast_update(
+            event_id=self.event_id, 
+            widget_name="PingPlotter", 
+            widget_id=self.id, 
+            data={"message": message, "result": result}
+        )
 
     async def ping_hosts(self):
         while True:

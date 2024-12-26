@@ -93,7 +93,7 @@ class create_handler:
 
                 while start_attempts < 5 and not start_success:
                     try:
-                        self.widget_registry[widget["widgetName"]]["start"](widget["widget_id"])
+                        self.widget_registry[widget["widgetName"]]["start"](widget["widget_id"], event["id"])
                         this_widget["status"] = "active"
                         start_success = True
                     except Exception as e:

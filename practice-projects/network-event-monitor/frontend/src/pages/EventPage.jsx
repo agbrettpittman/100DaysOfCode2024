@@ -1,13 +1,12 @@
 import { useParams } from 'react-router-dom'
-import moment from 'moment'
 import useEvent from '@utilities/hooks/useEvent'
 import { Delete as DeleteIcon } from '@mui/icons-material'
 import { Typography, Box, IconButton, useTheme, Divider, Button } from '@mui/material'
 import { transparentize } from 'polished'
 import HoldIconButton from '@components/ui/HoldIconButton'
-import PingPlotter from '@components/widgets/PingPlotter'
 import EventWidgets from '@components/EventWidgets'
 import { useEffect, useState } from 'react'
+import { toast } from 'react-toastify'
 
 const NoValueSX = { color: 'text.disabled', fontStyle: 'italic' }
 
@@ -28,11 +27,13 @@ export default function EventPage() {
 
         socket.onmessage = (event) => {
             const data = JSON.parse(event.data)
-            console.log(data)
+            const { message, result } = data.data
+            if (result==='success') toast.success(message)
+            else toast.error(message)
         }
 
         socket.onerror = (event) => {
-            toast.error('Failed to connect to ping plotter websocket')
+            toast.error('Failed to connect to event websocket')
             console.error(event)
         }
 

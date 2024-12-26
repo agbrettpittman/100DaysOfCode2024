@@ -4,7 +4,7 @@ from pydantic import BaseModel, field_validator
 from sqlite3 import Connection, Cursor
 from utilities.dbConn import db_dep
 from utilities.utils import handle_route_exception
-from utilities.eventSocket import socket_handler
+from utilities.eventSocketHandler import event_sockets
 from datetime import datetime, timedelta
 
 router = APIRouter(
@@ -12,8 +12,6 @@ router = APIRouter(
     tags=["Events"],
     responses={404: {"description": "Not found"}},
 )
-
-event_socket = socket_handler()
 
 class EventModel(BaseModel):
     referenceID: str | None = None
@@ -84,7 +82,7 @@ async def create_event(event: EventModel, db: tuple[Cursor, Connection] = Depend
 
 @router.websocket("/ws/{event_id}")
 async def get_plotter_results(websocket: WebSocket, event_id: int):
-    await event_socket.new_connection(websocket, event_id)
+    await event_sockets.new_connection(websocket, event_id)
     
 
 @router.get("/{id}")
