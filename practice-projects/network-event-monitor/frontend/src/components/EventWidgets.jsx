@@ -22,6 +22,8 @@ export default function EventWidgets() {
     const [widgets, setWidgets] = useState([]);
     const [AvailableWidgets, setAvailableWidgets] = useState({});
     const [NewWidgetSelection, setNewWidgetSelection] = useState(null);
+    const [WebsocketConnection, setWebsocketConnection] = useState(null);
+    const [SocketUpdates, setSocketUpdates] = useState([]);
     const WidgetModulesLoaded = useRef(false);
     const { id } = useParams();
     const DropdownOptions = Object.keys(AvailableWidgets)
@@ -34,6 +36,36 @@ export default function EventWidgets() {
     useEffect(() => {
         initialLoad();
     }, [])
+
+    useEffect(() => {
+        // Create socket connection
+        const SocketBase = import.meta.env.VITE_APP_SOCKET_BASE
+        const socket = new WebSocket(`${SocketBase}/events/ws/${id}`)
+
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data)
+            const { message, result } = data.data
+            if (result==='success') toast.success(message)
+            else toast.error(message)
+        }
+
+        socket.onerror = (event) => {
+            toast.error('Failed to connect to event websocket')
+            console.error(event)
+        }
+
+        socket.onclose = (event) => {
+            console.log(event)
+        }
+
+        setWebsocketConnection(socket)
+
+        return () => {
+            if (socket.readyState === WebSocket.OPEN) {
+                socket.close()
+            }
+        }
+    }, [id])
 
     async function initialLoad(){
         if (WidgetModulesLoaded.current) return

@@ -14,40 +14,10 @@ export default function EventPage() {
     const { id } = useParams()
     const Theme = useTheme()
     const {Event, deleteEvent } = useEvent({id})
-    const [WebsocketConnection, setWebsocketConnection] = useState(null)
     function getDisplayDatetime(type) {
         return Event[type].format('MMMM Do YYYY, h:mm:ss a')
     }
     const InitialDeleteIconColor = transparentize(0.5, Theme.palette.error.main)
-
-    useEffect(() => {
-        // Create socket connection
-        const SocketBase = import.meta.env.VITE_APP_SOCKET_BASE
-        const socket = new WebSocket(`${SocketBase}/events/ws/${id}`)
-
-        socket.onmessage = (event) => {
-            const data = JSON.parse(event.data)
-            const { message, result } = data.data
-            if (result==='success') toast.success(message)
-            else toast.error(message)
-        }
-
-        socket.onerror = (event) => {
-            toast.error('Failed to connect to event websocket')
-            console.error(event)
-        }
-
-        socket.onclose = (event) => {
-            console.log(event)
-        }
-
-        setWebsocketConnection(socket)
-
-        return () => {
-            socket.close()
-        }
-    }, [id])
-
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
