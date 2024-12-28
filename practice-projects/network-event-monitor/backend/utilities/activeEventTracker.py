@@ -69,8 +69,9 @@ class create_handler:
             if widget["event_id"] not in widgets_by_event:
                 widgets_by_event[widget["event_id"]] = []
             widgets_by_event[widget["event_id"]].append(widget)
+        found_events_dict = {event["id"]: event for event in found_events}
 
-
+        # loop through the found events and start any that are not already active
         for event in found_events:
             if event["id"] not in self.active_events:
                 self.active_events[event["id"]] = {}
@@ -81,6 +82,7 @@ class create_handler:
             for widget in event_widgets:
                 if widget['widget_id'] not in this_event:
                     this_event[widget['widget_id']] = {
+                        "widgetName": widget['widgetName'],
                         "status": "",
                         "failure_history": []
                     }
@@ -105,6 +107,43 @@ class create_handler:
                         })
                         logger.error(f"Failed to start widget {widget['widgetName']}: {e}")
                         time.sleep(5)
+                if not start_success:
+                    this_widget["status"] = "halted"
+                    logger.error(f"Failed to start widget {widget['widgetName']} after 5 attempts")
+
+        # loop through the active events and stop any that are no longer active
+        logger.info("Checking for events to stop")
+        events_to_delete = []
+        for event_id in self.active_events:
+            if event_id in found_events_dict: continue
+            print(f"Stopping event {event_id}")
+            active_event_widgets = self.active_events[event_id]
+            failed_to_stop_widgets = []
+            for widget_id, widget_details in active_event_widgets.items():
+                widget_status = widget_details["status"]
+                widget_name = widget_details["widgetName"]
+                if widget_status == "halted": continue # skip widgets that are already stopped
+                print(f"Stopping Widget {widget_id}:")
+                print(widget_details)
+                try:
+                    self.widget_registry[widget_name]["stop"](widget_id, event_id)
+                    print(f"Stopped widget {widget_name} {widget_id}")
+                    widget_details["status"] = "halted"
+                except Exception as e:
+                    logger.error(f"Failed to stop widget {widget_name}: {e}")
+                    widget_details["status"] = "failed to stop"
+                    failed_to_stop_widgets.append(widget_details)
+            
+            if len(failed_to_stop_widgets) > 0:
+                for widget_id in failed_to_stop_widgets:
+                    logger.critical(f"{widget_details['widgetName']} could not be stopped! Event will remain active.")
+            else:
+                print(f"Event {event_id} has been stopped and will be removed from active events")
+                events_to_delete.append(event_id)
+
+        for event_id in events_to_delete:
+            del self.active_events[event_id]
+                
         
     def register_widget(self, name, start_function, stop_function):
         self.widget_registry[name] = {
