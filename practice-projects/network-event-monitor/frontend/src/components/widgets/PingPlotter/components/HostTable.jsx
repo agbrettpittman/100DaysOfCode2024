@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { toast } from 'react-toastify';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TextField, IconButton } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TextField, IconButton, Box } from '@mui/material';
 import requestor from '@utilities/requestor';
 import { PingPlotterContext } from '..';
 import { Delete, Edit, Close, Check } from '@mui/icons-material';
@@ -9,11 +9,18 @@ import { useTheme } from '@mui/material';
 import { transparentize } from 'polished';
 import styled from 'styled-components';
 
+function getStatusColor({ status, theme }) {
+    let color = theme.palette.grey.A400
+    if (status === 'success') color = theme.palette.success.light
+    if (status === 'error') color = theme.palette.error.light
+    return color
+}
+
 const StatusIndicator = styled.div`
-    width: 1em;
-    height: 1em;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
-    background-color: ${({ status }) => status === 'success' ? 'green' : 'red'};
+    background-color: ${getStatusColor};
 `;
 
 export default function HostTable() {
@@ -42,7 +49,8 @@ export default function HostTable() {
                         ...prevValue,
                         [message.data.host_id]: {
                             ...prevValue[message.data.host_id],
-                            status: message.data.status
+                            status: message.data.status,
+                            delay: message.data.delay
                         }
                     };
                     hostsNeedingUpdate = hostsNeedingUpdate.filter(id => id !== message.data.host_id.toString());
@@ -170,8 +178,11 @@ export default function HostTable() {
                                 )}
                             </TableCell>
                             {editHostId !== host.id && (
-                                <TableCell width={'1em'}>
-                                    <StatusIndicator status={host.status} />
+                                <TableCell width={'auto'}>
+                                    <Box display='flex' alignItems='center' widgth='8em' justifyContent={'end'} gap={1}>
+                                        {host.delay}
+                                        <StatusIndicator status={host.status} />
+                                    </Box>
                                 </TableCell>
                             )}
                         </TableRow>
