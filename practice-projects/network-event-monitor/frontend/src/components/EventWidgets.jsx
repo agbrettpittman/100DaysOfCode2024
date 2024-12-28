@@ -43,10 +43,13 @@ export default function EventWidgets() {
         const socket = new WebSocket(`${SocketBase}/events/ws/${id}`)
 
         socket.onmessage = (event) => {
-            const data = JSON.parse(event.data)
-            const { message, result } = data.data
-            if (result==='success') toast.success(message)
-            else toast.error(message)
+            const ParsedResponseData = JSON.parse(event.data)
+            const { host, delay, status } = ParsedResponseData.data
+
+            if (status==='success') toast.success(`${host} - ${delay}`)
+            else toast.error(`${host} - ${status}`)
+
+            setSocketUpdates((prev) => [...prev, ParsedResponseData])
         }
 
         socket.onerror = (event) => {
@@ -183,9 +186,10 @@ export default function EventWidgets() {
                         }   
                         
                         const { Component } = loadedWidget;
+                        const messages = SocketUpdates.filter((update) => update.widget_id === widget_id);
                         return (
                             <Box key={widget.id} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 1 }}>
-                                <Component widgetId={widget_id} />
+                                <Component widgetId={widget_id} messages={messages} />
                             </Box>
                         );
                     })}
