@@ -42,24 +42,30 @@ class Plotter:
         print(f"Plotter {self.id} created. Hosts: {self.hosts}")
 
     async def ping_host(self, host):
-        message = ""
-        result = ""
+        data={
+            "plotter_id": self.id,
+            "host_id": host['id'],
+            "host": host['host'],
+            "delay": None,
+            "status": None,
+            "details": None
+        }
         try:
             delay = await aioping.ping(host['host'])  # Returns delay in seconds
-            message = f"Pong from {host['host']} for plotter {self.id}: {delay*1000:.2f} ms"
-            result="success"
+            data["delay"] = f"{delay*1000:.2f} ms"
+            data["status"] = "success"
         except TimeoutError:
-            message = f"Ping to {host['host']} for plotter {self.id} timed out"
-            result="timeout"
+            data["status"] = "error"
+            data["details"] = "Timeout"
         except Exception as e:
-            message = f"Error pinging {host['host']} for plotter {self.id}: {e}"
-            result="error"
+            data["status"] = "error"
+            data["details"] = str(e)
 
         await event_sockets.broadcast_update(
             event_id=self.event_id, 
             widget_name="PingPlotter", 
             widget_id=self.id, 
-            data={"message": message, "result": result}
+            data=data
         )
 
     async def ping_hosts(self):
