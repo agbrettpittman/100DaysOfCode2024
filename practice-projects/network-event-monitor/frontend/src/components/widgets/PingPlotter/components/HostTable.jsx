@@ -7,12 +7,20 @@ import { Delete, Edit, Close, Check } from '@mui/icons-material';
 import HoldIconButton from '@components/ui/HoldIconButton';
 import { useTheme } from '@mui/material';
 import { transparentize } from 'polished';
+import styled from 'styled-components';
+
+const StatusIndicator = styled.div`
+    width: 1em;
+    height: 1em;
+    border-radius: 50%;
+    background-color: ${({ status }) => status === 'success' ? 'green' : 'red'};
+`;
 
 export default function HostTable() {
-    const [hosts, setHosts] = useState([]);
+    const [hosts, setHosts] = useState({});
     const [editHostId, setEditHostId] = useState(null);
     const [editHostValue, setEditHostValue] = useState('');
-    const { id, HostsAdded } = useContext(PingPlotterContext);
+    const { id, HostsAdded, messages } = useContext(PingPlotterContext);
     const Theme = useTheme();
     const InitialDeleteIconColor = transparentize(0.5, Theme.palette.error.main);
 
@@ -20,13 +28,42 @@ export default function HostTable() {
         fetchHosts();
     }, [id, HostsAdded]);
 
+    useEffect(() => {
+        console.log({
+            hosts, messages
+        });
+        setHosts(prevValue => {
+            let hostsNeedingUpdate = Object.keys(prevValue);
+
+            for (let i = messages.length - 1; i >= 0; i--) {
+                const message = messages[i];
+                if (hostsNeedingUpdate.includes(message.data.host_id.toString())) {
+                    prevValue = {
+                        ...prevValue,
+                        [message.data.host_id]: {
+                            ...prevValue[message.data.host_id],
+                            status: message.data.status
+                        }
+                    };
+                    hostsNeedingUpdate = hostsNeedingUpdate.filter(id => id !== message.data.host_id.toString());
+                }
+                if (hostsNeedingUpdate.length === 0) break;
+            }
+            return prevValue;
+        });
+    }, [messages]);
+
     async function fetchHosts() {
         if (!id) return;
         requestor.get(`/widgets/ping-plotter/plotters/${id}/hosts`, {
             id: `/widgets/ping-plotter/plotters/${id}/hosts`
         }).then((response) => {
             console.log(response.data);
-            setHosts(response.data);
+            const hostsData = response.data.reduce((hostObject, host) => {
+                hostObject[host.id] = host;
+                return hostObject;
+            }, {});
+            setHosts(hostsData);
         }).catch((error) => {
             toast.error('Failed to get ping plotter hosts');
             console.error(error);
@@ -36,7 +73,11 @@ export default function HostTable() {
     function handleDeleteHost(hostId) {
         requestor.delete(`/widgets/ping-plotter/plotters/${id}/hosts/${hostId}`)
             .then(() => {
-                setHosts(hosts.filter(host => host.id !== hostId));
+                setHosts(prevHosts => {
+                    const newHosts = { ...prevHosts };
+                    delete newHosts[hostId];
+                    return newHosts;
+                });
                 toast.success('Host deleted successfully');
             })
             .catch((error) => {
@@ -58,7 +99,13 @@ export default function HostTable() {
     function handleSaveEdit(hostId) {
         requestor.put(`/widgets/ping-plotter/plotters/${id}/hosts/${hostId}`, { host: editHostValue })
             .then(() => {
-                setHosts(hosts.map(host => host.id === hostId ? { ...host, host: editHostValue } : host));
+                setHosts(prevHosts => ({
+                    ...prevHosts,
+                    [hostId]: {
+                        ...prevHosts[hostId],
+                        host: editHostValue
+                    }
+                }));
                 toast.success('Host updated successfully');
                 setEditHostId(null);
                 setEditHostValue('');
@@ -69,11 +116,13 @@ export default function HostTable() {
             });
     }
 
+    console.log(hosts)
+
     return (
         <TableContainer component={Paper}>
             <Table>
                 <TableBody>
-                    {hosts.map((host) => (
+                    {Object.values(hosts).map((host) => (
                         <TableRow key={host.id}>
                             <TableCell width={'1em'}>
                                 {editHostId === host.id ? (
@@ -120,6 +169,11 @@ export default function HostTable() {
                                     host.host
                                 )}
                             </TableCell>
+                            {editHostId !== host.id && (
+                                <TableCell width={'1em'}>
+                                    <StatusIndicator status={host.status} />
+                                </TableCell>
+                            )}
                         </TableRow>
                     ))}
                 </TableBody>
