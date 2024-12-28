@@ -32,7 +32,7 @@ export const PingPlotterContext = createContext({
     setHostsAdded: () => {},
 })
 
-export default function PingPlotter({widgetId}) {
+export default function PingPlotter({widgetId = null, messages = []}) {
 
     const { deleteWidget } = useContext(WidgetsContext)
     const [Data, setData] = useState({
@@ -44,6 +44,7 @@ export default function PingPlotter({widgetId}) {
     const RouterRoot = "/widgets/ping-plotter/plotters"
 
     useEffect(() => {
+        if (!widgetId) return
         requestor.get(`${RouterRoot}/${widgetId}`).then((response) => {
             setData(response.data)
         }).catch((error) => {
@@ -51,7 +52,6 @@ export default function PingPlotter({widgetId}) {
             console.error(error)
         })
     }, [widgetId])
-
 
     async function handleDelete() {
         try {
@@ -65,7 +65,7 @@ export default function PingPlotter({widgetId}) {
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <PingPlotterContext.Provider value={{id: widgetId, HostsAdded, setHostsAdded}}>
+            <PingPlotterContext.Provider value={{id: widgetId, HostsAdded, setHostsAdded, messages}}>
                 <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, alignItems: 'center' }}>
                     <HoldIconButton 
                         color={InitialDeleteIconColor} 
