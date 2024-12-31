@@ -9,10 +9,9 @@ db_init = initialize_database
 
 def start(id:int = None, event_id:int = None):
     plotter_runner.add_plotter(id, event_id)
-    print(f"Ping Plotter router {id} started")
 
 def stop(id:int = None, event_id:int = None):
-    print(f"Ping Plotter router {id} stopped")
+    plotter_runner.remove_plotter(id)
 
 router = APIRouter(
     prefix="/ping-plotter",

@@ -65,6 +65,4 @@ def include_widget_routers():
                     logger.error(e)
 
             logger.info(f"Initialized database for {module_title}")
-
-    active_event_handler.activate()
     

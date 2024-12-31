@@ -1,5 +1,6 @@
 import logging, threading, time, asyncio
 from datetime import datetime
+from fastapi import BackgroundTasks
 from .dbConn import get_db
 
 logger = logging.getLogger("uvicorn")
@@ -7,6 +8,7 @@ logger = logging.getLogger("uvicorn")
 class create_handler:
 
     _instance = None
+    _task = None
 
     def __new__(cls):
         if cls._instance is None:
@@ -15,32 +17,30 @@ class create_handler:
         return cls._instance
     
     def __init__(self):
-        self._instance = self
         self.active_events = {}
         self.widget_registry = {}
 
-    def activate(self):
-        logger.info("Activating Active Event Tracker")
+    async def get_active_event_loop(self):
+        current_loop = asyncio.get_event_loop()
+        logger.info(f"Starting active event loop - {datetime.now()} - {id(current_loop)}")
+        while True:
+            await self.get_active_events()
+            #logger.info("Sleeping for 5 seconds for testing purposes")
+            #await asyncio.sleep(5)  # Sleep for 5 seconds for testing purposes
+            #logger.info("Waking up from sleep")
+            await asyncio.sleep(61 - time.time() % 60)  # Sleep until the next minute
 
-        def start_active_event_getter():
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-
-            async def get_active_event_loop():
-                while True:
-                    await self.get_active_events()
-                    await asyncio.sleep(60 - time.time() % 60)  # Sleep until the next minute
-
-            try:
-                loop.run_until_complete(get_active_event_loop())  # Run the periodic task
-            finally:
-                loop.close()
-
-        thread = threading.Thread(target=start_active_event_getter, daemon=True)
-        thread.start()
+    async def activate(self):
+        if self._task and not self._task.done():
+            logger.warning("Task is already running. Skipping reactivation.")
+            return  # Avoid starting the task again if it's already running
+        current_loop = asyncio.get_event_loop()
+        logger.info(f"Activating Active Event Tracker in event loop {id(current_loop)}")
+        asyncio.create_task(self.get_active_event_loop())
 
     async def get_active_events(self):
-        logger.info("Getting active events")
+        current_loop = asyncio.get_event_loop()
+        logger.info(f"Getting active events - {datetime.now()} - {id(current_loop)}")
         found_events = []
         found_widgets = []
 
