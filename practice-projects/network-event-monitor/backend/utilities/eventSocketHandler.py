@@ -37,7 +37,8 @@ class new_handler:
                 data = await websocket.receive_json()
                 print(f"Data received: {data}")
         except WebSocketDisconnect:
-            del self.socket_connections[event_id]
-            print(f"Connection {event_id} closed")
+            print(f"Connection closed for event {event_id}")
+            if event_id in self.socket_connections:
+                self.socket_connections[event_id].remove(websocket)
 
 event_sockets = new_handler()
