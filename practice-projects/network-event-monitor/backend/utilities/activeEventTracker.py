@@ -21,13 +21,9 @@ class create_handler:
         self.widget_registry = {}
 
     async def get_active_event_loop(self):
-        current_loop = asyncio.get_event_loop()
-        logger.info(f"Starting active event loop - {datetime.now()} - {id(current_loop)}")
+        logger.info(f"Starting active event loop")
         while True:
             await self.get_active_events()
-            #logger.info("Sleeping for 5 seconds for testing purposes")
-            #await asyncio.sleep(5)  # Sleep for 5 seconds for testing purposes
-            #logger.info("Waking up from sleep")
             await asyncio.sleep(61 - time.time() % 60)  # Sleep until the next minute
 
     async def activate(self):
@@ -39,8 +35,7 @@ class create_handler:
         asyncio.create_task(self.get_active_event_loop())
 
     async def get_active_events(self):
-        current_loop = asyncio.get_event_loop()
-        logger.info(f"Getting active events - {datetime.now()} - {id(current_loop)}")
+        logger.info(f"Getting active events")
         found_events = []
         found_widgets = []
 
