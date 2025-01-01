@@ -19,6 +19,11 @@ class NewPlotterRunner:
         self.running_plotters[id] = Plotter(id, event_id)
         print(f"Ping Plotter router {id} started")
 
+    async def remove_plotter(self, id:int = None):
+        await self.running_plotters[id].stop()
+        del self.running_plotters[id]
+        print(f"Ping Plotter router {id} stopped")
+
 class Plotter:
 
     sleep_seconds = 15
@@ -27,6 +32,7 @@ class Plotter:
         self.id = id
         self.event_id = event_id
         self.hosts = []
+        self.ping_task = None
 
         with get_db() as (cursor, conn):
             cursor.execute('''
@@ -37,9 +43,29 @@ class Plotter:
             for host in hosts:
                 self.hosts.append(dict(host))
 
-        asyncio.get_event_loop().create_task(self.ping_hosts())
+        self.ping_task = asyncio.create_task(self.get_host_ping_loop())
 
         print(f"Plotter {self.id} created. Hosts: {self.hosts}")
+
+    async def get_host_ping_loop(self):
+        try:
+            while True:
+                tasks = [self.ping_host(host) for host in self.hosts]
+                await asyncio.gather(*tasks)
+                await asyncio.sleep(self.sleep_seconds)
+        except asyncio.CancelledError:
+            print(f"Ping task for plotter {self.id} cancelled")
+            raise
+                  
+    
+    async def stop(self):
+        if not self.ping_task: return
+        print(f"Stopping plotter {self.id}")
+        self.ping_task.cancel()
+        try:
+            await self.ping_task
+        except asyncio.CancelledError:
+            raise
 
     async def ping_host(self, host):
         data={
@@ -68,10 +94,6 @@ class Plotter:
             data=data
         )
 
-    async def ping_hosts(self):
-        while True:
-            tasks = [self.ping_host(host) for host in self.hosts]
-            await asyncio.gather(*tasks)
-            await asyncio.sleep(self.sleep_seconds)
+    
 
 plotter_runner = NewPlotterRunner()
