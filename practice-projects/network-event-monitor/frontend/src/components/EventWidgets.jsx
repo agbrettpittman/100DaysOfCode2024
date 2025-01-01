@@ -22,9 +22,9 @@ export default function EventWidgets() {
     const [widgets, setWidgets] = useState([]);
     const [AvailableWidgets, setAvailableWidgets] = useState({});
     const [NewWidgetSelection, setNewWidgetSelection] = useState(null);
-    const [WebsocketConnection, setWebsocketConnection] = useState(null);
     const [SocketUpdates, setSocketUpdates] = useState([]);
     const WidgetModulesLoaded = useRef(false);
+    const WebsocketConnection = useRef(null);
     const { id } = useParams();
     const DropdownOptions = Object.keys(AvailableWidgets)
     .filter((widgetName) => AvailableWidgets[widgetName].Create)
@@ -38,6 +38,29 @@ export default function EventWidgets() {
     }, [])
 
     useEffect(() => {
+        
+        setupWebsocket();
+        return () => {
+            if (WebsocketConnection.current) {
+                closeCurrentWebsocket();
+            }
+        }
+    }, [id])
+
+    function closeCurrentWebsocket() {
+        if (WebsocketConnection.current) {
+            console.log('Closing websocket connection')
+            WebsocketConnection.current.onerror = null;
+            WebsocketConnection.current.close();
+            WebsocketConnection.current = null;
+        }
+    }
+
+    async function setupWebsocket() {
+        if (WebsocketConnection.current) {
+            closeCurrentWebsocket();
+        }
+        if (!id) return;
         // Create socket connection
         const SocketBase = import.meta.env.VITE_APP_SOCKET_BASE
         const socket = new WebSocket(`${SocketBase}/events/ws/${id}`)
@@ -61,14 +84,9 @@ export default function EventWidgets() {
             console.log(event)
         }
 
-        setWebsocketConnection(socket)
+        WebsocketConnection.current = socket;
+    }
 
-        return () => {
-            if (socket.readyState === WebSocket.OPEN) {
-                socket.close()
-            }
-        }
-    }, [id])
 
     async function initialLoad(){
         if (WidgetModulesLoaded.current) return
