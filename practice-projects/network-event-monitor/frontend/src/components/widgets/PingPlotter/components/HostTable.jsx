@@ -36,9 +36,6 @@ export default function HostTable() {
     }, [id, HostsAdded]);
 
     useEffect(() => {
-        console.log({
-            hosts, messages
-        });
         setHosts(prevValue => {
             let hostsNeedingUpdate = Object.keys(prevValue);
 
@@ -66,7 +63,6 @@ export default function HostTable() {
         requestor.get(`/widgets/ping-plotter/plotters/${id}/hosts`, {
             id: `/widgets/ping-plotter/plotters/${id}/hosts`
         }).then((response) => {
-            console.log(response.data);
             const hostsData = response.data.reduce((hostObject, host) => {
                 hostObject[host.id] = host;
                 return hostObject;
@@ -123,8 +119,6 @@ export default function HostTable() {
                 console.error(error);
             });
     }
-
-    console.log(hosts)
 
     return (
         <TableContainer component={Paper}>
