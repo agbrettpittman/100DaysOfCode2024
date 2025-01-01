@@ -7,11 +7,11 @@ title = "Ping Plotter"
 
 db_init = initialize_database
 
-def start(id:int = None, event_id:int = None):
+async def start(id:int = None, event_id:int = None):
     plotter_runner.add_plotter(id, event_id)
 
-def stop(id:int = None, event_id:int = None):
-    plotter_runner.remove_plotter(id)
+async def stop(id:int = None, event_id:int = None):
+    await plotter_runner.remove_plotter(id)
 
 router = APIRouter(
     prefix="/ping-plotter",

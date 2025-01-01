@@ -90,7 +90,7 @@ class create_handler:
 
                 while start_attempts < 5 and not start_success:
                     try:
-                        self.widget_registry[widget["widgetName"]]["start"](widget["widget_id"], event["id"])
+                        await self.widget_registry[widget["widgetName"]]["start"](widget["widget_id"], event["id"])
                         this_widget["status"] = "active"
                         start_success = True
                     except Exception as e:
@@ -118,10 +118,9 @@ class create_handler:
                 widget_status = widget_details["status"]
                 widget_name = widget_details["widgetName"]
                 if widget_status == "halted": continue # skip widgets that are already stopped
-                print(f"Stopping Widget {widget_id}:")
-                print(widget_details)
+                print(f"Stopping Widget {widget_id}")
                 try:
-                    self.widget_registry[widget_name]["stop"](widget_id, event_id)
+                    await self.widget_registry[widget_name]["stop"](widget_id, event_id)
                     print(f"Stopped widget {widget_name} {widget_id}")
                     widget_details["status"] = "halted"
                 except Exception as e:
