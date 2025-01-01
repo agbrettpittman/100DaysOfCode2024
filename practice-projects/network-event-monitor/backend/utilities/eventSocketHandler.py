@@ -40,5 +40,8 @@ class new_handler:
             print(f"Connection closed for event {event_id}")
             if event_id in self.socket_connections:
                 self.socket_connections[event_id].remove(websocket)
+                if len(self.socket_connections[event_id]) == 0:
+                    del self.socket_connections[event_id]
+
 
 event_sockets = new_handler()
