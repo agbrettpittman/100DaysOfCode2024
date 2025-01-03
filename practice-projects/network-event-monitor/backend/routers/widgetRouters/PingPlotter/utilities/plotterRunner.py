@@ -1,6 +1,7 @@
-import threading, time, aioping, asyncio
+import aioping, asyncio, aiodns
 from utilities.dbConn import get_db
 from utilities.eventSocketHandler import event_sockets
+from typing import List, Dict
 
 class NewPlotterRunner:
 
@@ -17,12 +18,10 @@ class NewPlotterRunner:
 
     def add_plotter(self, id:int = None, event_id:int = None):
         self.running_plotters[id] = Plotter(id, event_id)
-        print(f"Ping Plotter router {id} started")
 
     async def remove_plotter(self, id:int = None):
         await self.running_plotters[id].stop()
         del self.running_plotters[id]
-        print(f"Ping Plotter router {id} stopped")
 
 class Plotter:
 
@@ -31,33 +30,21 @@ class Plotter:
     def __init__(self, id: int, event_id: int):
         self.id = id
         self.event_id = event_id
-        self.hosts = []
+        self.hosts: List[Dict] = []
         self.ping_task = None
+        self.resolver = aiodns.DNSResolver()
+        self.host_resolutions: Dict[str, str] = {}
 
-        with get_db() as (cursor, conn):
-            cursor.execute('''
-                SELECT * FROM widgets_PingPlotter_hosts 
-                WHERE plotter_id = :plotter_id
-            ''', {"plotter_id": self.id})
-            hosts = cursor.fetchall()
-            for host in hosts:
-                self.hosts.append(dict(host))
-
-        self.ping_task = asyncio.create_task(self.get_host_ping_loop())
-
-        print(f"Plotter {self.id} created. Hosts: {self.hosts}")
-
-    async def get_host_ping_loop(self):
+        # Get hosts from database
         try:
-            while True:
-                tasks = [self.ping_host(host) for host in self.hosts]
-                await asyncio.gather(*tasks)
-                await asyncio.sleep(self.sleep_seconds)
-        except asyncio.CancelledError:
-            print(f"Ping task for plotter {self.id} cancelled")
+            self.get_hosts()
+            self.ping_task = asyncio.create_task(self._host_ping_loop())
+            print(f"Plotter {self.id} created. Hosts: {self.hosts}")
+        except Exception as e:
+            print(f"Error creating plotter {self.id}: {e}")
             raise
-                  
-    
+
+
     async def stop(self):
         if not self.ping_task: return
         print(f"Stopping plotter {self.id}")
@@ -67,7 +54,50 @@ class Plotter:
         except asyncio.CancelledError:
             raise
 
-    async def ping_host(self, host):
+    def get_hosts(self):
+        with get_db() as (cursor, conn):
+            cursor.execute('''
+                SELECT * FROM widgets_PingPlotter_hosts 
+                WHERE plotter_id = :plotter_id
+            ''', {"plotter_id": self.id})
+            hosts = cursor.fetchall()
+            for host in hosts:
+                self.hosts.append(dict(host))
+
+    async def resolve_hosts(self):
+        results = {"errored": [], "resolutions": {}}
+        tasks = [self._resolve_host(host['host']) for host in self.hosts]
+        resolved_hosts = await asyncio.gather(*tasks, return_exceptions=True)
+
+        for host in resolved_hosts:
+            if host["status"] == "success":
+                results["resolutions"][host["host"]] = host["resolved_ip"]
+            else:
+                results["errored"].append(host)
+
+        return results
+
+    async def _host_ping_loop(self):
+        try:
+            while True:
+                host_resolution_task = asyncio.create_task(self.resolve_hosts())
+                self.host_resolutions = await host_resolution_task
+                print(self.host_resolutions)
+                tasks = [self._ping_host(host) for host in self.hosts]
+                await asyncio.gather(*tasks)
+                await asyncio.sleep(self.sleep_seconds)
+        except asyncio.CancelledError:
+            print(f"Ping task for plotter {self.id} cancelled")
+            raise
+
+    async def _resolve_host(self, host):
+        try:
+            result = await self.resolver.query(host, 'A')
+            return {"host": host, "resolved_ip": result[0].host, "status": "success"}
+        except Exception as e:
+            return {"host": host, "resolved_ip": None, "status": "error", "details": str(e)}
+        
+    async def _ping_host(self, host):
         data={
             "plotter_id": self.id,
             "host_id": host['id'],
@@ -77,7 +107,10 @@ class Plotter:
             "details": None
         }
         try:
-            delay = await aioping.ping(host['host'])  # Returns delay in seconds
+            if host['host'] in self.host_resolutions["errored"] or host['host'] not in self.host_resolutions["resolutions"]:
+                raise Exception("DNS resolution failed")
+            resolved_ip = self.host_resolutions["resolutions"][host['host']]
+            delay = await aioping.ping(resolved_ip)  # Returns delay in seconds
             data["delay"] = f"{delay*1000:.2f} ms"
             data["status"] = "success"
         except TimeoutError:
@@ -85,7 +118,10 @@ class Plotter:
             data["details"] = "Timeout"
         except Exception as e:
             data["status"] = "error"
-            data["details"] = str(e)
+            if host['host'] in self.host_resolutions["errored"]:
+                data["details"] = "DNS resolution failed"
+            else:
+                data["details"] = str(e)
 
         await event_sockets.broadcast_update(
             event_id=self.event_id, 
