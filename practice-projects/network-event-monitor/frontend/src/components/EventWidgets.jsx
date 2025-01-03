@@ -67,9 +67,10 @@ export default function EventWidgets() {
 
         socket.onmessage = (event) => {
             const ParsedResponseData = JSON.parse(event.data)
-            const { host, delay, status } = ParsedResponseData.data
+            const { host, delay, status, details } = ParsedResponseData.data
 
             if (status==='success') toast.success(`${host} - ${delay}`)
+            else if (details === 'timeout') toast.warn(`${host} - ${details}`)
             else toast.error(`${host} - ${status}`)
 
             setSocketUpdates((prev) => [...prev, ParsedResponseData])
