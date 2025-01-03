@@ -1,7 +1,9 @@
-import aioping, asyncio, aiodns
+import aioping, asyncio, aiodns, logging
 from utilities.dbConn import get_db
 from utilities.eventSocketHandler import event_sockets
 from typing import List, Dict
+
+logger = logging.getLogger("uvicorn")
 
 class NewPlotterRunner:
 
@@ -39,7 +41,7 @@ class Plotter:
         try:
             self.get_hosts()
             self.ping_task = asyncio.create_task(self._host_ping_loop())
-            print(f"Plotter {self.id} created. Hosts: {self.hosts}")
+            logger.info(f"Plotter {self.id} created")
         except Exception as e:
             print(f"Error creating plotter {self.id}: {e}")
             raise
@@ -82,7 +84,6 @@ class Plotter:
             while True:
                 host_resolution_task = asyncio.create_task(self.resolve_hosts())
                 self.host_resolutions = await host_resolution_task
-                print(self.host_resolutions)
                 tasks = [self._ping_host(host) for host in self.hosts]
                 await asyncio.gather(*tasks)
                 await asyncio.sleep(self.sleep_seconds)
