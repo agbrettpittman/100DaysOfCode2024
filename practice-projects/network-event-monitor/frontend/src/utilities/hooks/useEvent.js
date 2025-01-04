@@ -116,6 +116,12 @@ export default function useEvent({id = null, defaults = {}, onSave=()=>{}}) {
         })
     }
 
-    return { Event, setEvent, deleteEvent, saveEvent, Changed: JSON.stringify(Event) !== JSON.stringify(DBEvent) }
+    return { 
+        Event, 
+        getEvent, 
+        setEvent, 
+        deleteEvent, 
+        saveEvent, 
+        Changed: JSON.stringify(Event) !== JSON.stringify(DBEvent) }
 
 }
