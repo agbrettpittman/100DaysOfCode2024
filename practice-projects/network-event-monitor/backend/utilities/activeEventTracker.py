@@ -5,6 +5,13 @@ from .dbConn import get_db
 
 logger = logging.getLogger("uvicorn")
 
+class registered_widget:
+
+    def __init__(self, name, start_function, stop_function):
+        self.name = name
+        self.start = start_function
+        self.stop = stop_function
+
 class create_handler:
 
     _instance = None
@@ -88,9 +95,11 @@ class create_handler:
                 start_attempts = 0
                 start_success = False
 
+
                 while start_attempts < 5 and not start_success:
                     try:
-                        await self.widget_registry[widget["widgetName"]]["start"](widget["widget_id"], event["id"])
+                        widget_registry_entry = self.widget_registry[widget["widgetName"]]
+                        await widget_registry_entry.start(widget["widget_id"], event["id"])
                         this_widget["status"] = "active"
                         start_success = True
                     except Exception as e:
@@ -120,7 +129,8 @@ class create_handler:
                 if widget_status == "halted": continue # skip widgets that are already stopped
                 print(f"Stopping Widget {widget_id}")
                 try:
-                    await self.widget_registry[widget_name]["stop"](widget_id, event_id)
+                    widget_registry_entry = self.widget_registry[widget_name]
+                    await widget_registry_entry.stop(widget_id, event_id)
                     print(f"Stopped widget {widget_name} {widget_id}")
                     widget_details["status"] = "halted"
                 except Exception as e:
@@ -140,10 +150,7 @@ class create_handler:
                 
         
     def register_widget(self, name, start_function, stop_function):
-        self.widget_registry[name] = {
-            "start": start_function,
-            "stop": stop_function
-        }
+        self.widget_registry[name] = registered_widget(name, start_function, stop_function)
 
 
 
