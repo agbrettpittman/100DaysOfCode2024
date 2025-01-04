@@ -37,14 +37,20 @@ export default function useEvent({id = null, defaults = {}, onSave=()=>{}}) {
     const memoizedDefaults = useMemo(() => defaults, [JSON.stringify(defaults)])
 
     useEffect(() => {
+        getEvent()
+    }, [id, memoizedDefaults])
+
+    function getEvent() {
         if (!id) {
             console.log(memoizedDefaults)
             updateState(getDefaultEvent(memoizedDefaults))
             setDBEvent(null)
             return
         }
-        requestor.get(`/events/${id}`).then((response) => {
-            let newState = {...response.data}
+        requestor.get(`/events/${id}`, {
+            id: `/events/${id}`
+        }).then((response) => {
+            let newState = { ...response.data }
             newState.start = moment(newState.start)
             newState.end = moment(newState.end)
             updateState(newState)
@@ -53,7 +59,7 @@ export default function useEvent({id = null, defaults = {}, onSave=()=>{}}) {
             console.error(error)
             toast.error('Failed to get event')
         })
-    }, [id, memoizedDefaults])
+    }
 
     function setEvent(key, value) {
         updateState((prevState) => {
@@ -80,7 +86,9 @@ export default function useEvent({id = null, defaults = {}, onSave=()=>{}}) {
                 end: Event.end.format('YYYY-MM-DD HH:mm:ss')
             }
         }
-        requestor.request(RequestConfig).then(() => {
+        requestor.request(RequestConfig).then(async () => {
+            await requestor.storage.remove(`/events/${id}`)
+            await requestor.storage.remove('/events')
             getEventList()
             onSave()
             toast.success('Event changes saved')

@@ -23,7 +23,9 @@ export default function App() {
     }, [])
     
     async function getEventList() {
-        requestor.get('/events').then((response) => {
+        requestor.get('/events', {
+            id: '/events'
+        }).then((response) => {
             console.log(response.data)
             const NewEvents = response.data.map((event) => {
                 return {
