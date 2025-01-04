@@ -2,6 +2,7 @@ import aioping, asyncio, aiodns, logging
 from utilities.dbConn import get_db
 from utilities.eventSocketHandler import event_sockets
 from typing import List, Dict
+from datetime import datetime
 
 logger = logging.getLogger("uvicorn")
 
@@ -105,7 +106,8 @@ class Plotter:
             "host": host['host'],
             "delay": None,
             "status": None,
-            "details": None
+            "details": None,
+            "datetime": None
         }
         try:
             if host['host'] in self.host_resolutions["errored"] or host['host'] not in self.host_resolutions["resolutions"]:
@@ -123,6 +125,8 @@ class Plotter:
                 data["details"] = "DNS resolution failed"
             else:
                 data["details"] = str(e)
+        
+        data["datetime"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         await event_sockets.broadcast_update(
             event_id=self.event_id, 
