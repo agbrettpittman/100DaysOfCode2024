@@ -8,6 +8,7 @@ import HoldIconButton from '@components/ui/HoldIconButton';
 import { useTheme } from '@mui/material';
 import { transparentize } from 'polished';
 import styled from 'styled-components';
+import moment from 'moment';
 
 function getStatusColor({ status, theme }) {
     let color = theme.palette.grey.A400
@@ -42,12 +43,20 @@ export default function HostTable() {
             for (let i = messages.length - 1; i >= 0; i--) {
                 const message = messages[i];
                 if (hostsNeedingUpdate.includes(message.data.host_id.toString())) {
+                    const Datetime = moment(message.data.datetime)
+                    let parsedDateTime = Datetime.format('h:mm A')
+                    // if the datetime is not today, show the date
+                    if (!Datetime.isSame(moment(), 'day')) {
+                        parsedDateTime = Datetime.format('M/D/YY h:mm A')
+                    }
+
                     prevValue = {
                         ...prevValue,
                         [message.data.host_id]: {
                             ...prevValue[message.data.host_id],
                             status: message.data.status,
-                            delay: message.data.delay
+                            delay: message.data.delay,
+                            lastUpdate: parsedDateTime
                         }
                     };
                     hostsNeedingUpdate = hostsNeedingUpdate.filter(id => id !== message.data.host_id.toString());
@@ -175,6 +184,7 @@ export default function HostTable() {
                                 <TableCell width={'auto'}>
                                     <Box display='flex' alignItems='center' widgth='8em' justifyContent={'end'} gap={1}>
                                         {host.delay}
+                                        {host.lastUpdate ? ` (${host.lastUpdate})` : ''}
                                         <StatusIndicator status={host.status} />
                                     </Box>
                                 </TableCell>
