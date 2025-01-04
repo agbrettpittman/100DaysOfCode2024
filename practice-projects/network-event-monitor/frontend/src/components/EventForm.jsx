@@ -74,15 +74,14 @@ export default function EventForm({id, onSave=()=>{}, defaults = {}}){
                     View Event
                 </Button>
             )}
-            {Changed && (
-                <Button
-                    variant="contained"
-                    color="success"
-                    onClick={saveEvent}
-                >
-                    Save
-                </Button>
-            )}
+            <Button
+                variant="contained"
+                color="success"
+                onClick={saveEvent}
+                disabled={!Changed}
+            >
+                Save
+            </Button>
         </Box>
     )
 
