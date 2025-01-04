@@ -24,13 +24,13 @@ class create_handler:
         return cls._instance
     
     def __init__(self):
-        self.active_events = {}
+        self.running_events = {}
         self.widget_registry = {}
 
-    async def get_active_event_loop(self):
+    async def start_active_event_loop(self):
         logger.info(f"Starting active event loop")
         while True:
-            await self.get_active_events()
+            await self.handle_active_events()
             await asyncio.sleep(61 - time.time() % 60)  # Sleep until the next minute
 
     async def activate(self):
@@ -39,9 +39,9 @@ class create_handler:
             return  # Avoid starting the task again if it's already running
         current_loop = asyncio.get_event_loop()
         logger.info(f"Activating Active Event Tracker in event loop {id(current_loop)}")
-        asyncio.create_task(self.get_active_event_loop())
+        asyncio.create_task(self.start_active_event_loop())
 
-    async def get_active_events(self):
+    async def handle_active_events(self):
         logger.info(f"Getting active events")
         found_events = []
         found_widgets = []
@@ -75,9 +75,9 @@ class create_handler:
 
         # loop through the found events and start any that are not already active
         for event in found_events:
-            if event["id"] not in self.active_events:
-                self.active_events[event["id"]] = {}
-            this_event = self.active_events[event["id"]]
+            if event["id"] not in self.running_events:
+                self.running_events[event["id"]] = {}
+            this_event = self.running_events[event["id"]]
             event_widgets = []
             if event["id"] in widgets_by_event:
                 event_widgets = widgets_by_event[event["id"]]
@@ -118,10 +118,10 @@ class create_handler:
         # loop through the active events and stop any that are no longer active
         logger.info("Checking for events to stop")
         events_to_delete = []
-        for event_id in self.active_events:
+        for event_id in self.running_events:
             if event_id in found_events_dict: continue
             print(f"Stopping event {event_id}")
-            active_event_widgets = self.active_events[event_id]
+            active_event_widgets = self.running_events[event_id]
             failed_to_stop_widgets = []
             for widget_id, widget_details in active_event_widgets.items():
                 widget_status = widget_details["status"]
@@ -146,7 +146,7 @@ class create_handler:
                 events_to_delete.append(event_id)
 
         for event_id in events_to_delete:
-            del self.active_events[event_id]
+            del self.running_events[event_id]
                 
         
     def register_widget(self, name, start_function, stop_function):
