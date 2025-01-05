@@ -2,10 +2,9 @@ import logging, threading, time, asyncio
 from datetime import datetime
 from fastapi import BackgroundTasks
 from .dbConn import get_db
+from .widget_registry import widget_registry
 
 logger = logging.getLogger("uvicorn")
-
-
 
 class active_event_list(list):
 
@@ -46,31 +45,6 @@ class active_events:
                 widgets_by_event[widget["event_id"]] = []
             widgets_by_event[widget["event_id"]].append(widget)
         return widgets_by_event
-
-class RegisteredWidget:
-
-    def __init__(self, name, start_function, stop_function):
-        self.name = name
-        self.start = start_function
-        self.stop = stop_function
-
-class WidgetRegistry:
-    
-    _instance = None
-
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
-
-    def __init__(self):
-        self.registry = {}
-
-    def register_widget(self, name, start_function, stop_function):
-        self.registry[name] = RegisteredWidget(name, start_function, stop_function)
-
-    def get_widget(self, name):
-        return self.registry[name]
 
 
 class running_event_widget:
@@ -212,6 +186,5 @@ class ActiveEventTracker:
                 if not start_success:
                     this_widget.update_status("failed to start")
                     logger.error(f"Failed to start widget {widget['widgetName']} after 5 attempts")
-        
-widget_registry = WidgetRegistry()
+
 active_event_handler = ActiveEventTracker()

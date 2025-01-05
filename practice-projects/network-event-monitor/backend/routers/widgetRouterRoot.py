@@ -1,8 +1,7 @@
 import os, logging, importlib.util
 from fastapi import APIRouter
 from utilities.dbConn import get_db
-from utilities.activeEventTracker import widget_registry
-
+from utilities.widget_registry import widget_registry
 
 router = APIRouter(
     prefix="/widgets",
