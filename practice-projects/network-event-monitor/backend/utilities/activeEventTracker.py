@@ -91,7 +91,7 @@ class running_event:
             widget_name=widget_name
         )
 
-class handler:
+class ActiveEventTracker:
 
     _instance = None
     _task = None
@@ -196,4 +196,4 @@ class handler:
                     this_widget.update_status("failed to start")
                     logger.error(f"Failed to start widget {widget['widgetName']} after 5 attempts")
         
-active_event_handler = handler()
+active_event_handler = ActiveEventTracker()
