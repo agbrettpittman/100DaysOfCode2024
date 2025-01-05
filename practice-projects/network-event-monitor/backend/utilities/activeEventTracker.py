@@ -47,12 +47,31 @@ class active_events:
             widgets_by_event[widget["event_id"]].append(widget)
         return widgets_by_event
 
-class registered_widget:
+class RegisteredWidget:
 
     def __init__(self, name, start_function, stop_function):
         self.name = name
         self.start = start_function
         self.stop = stop_function
+
+class WidgetRegistry:
+    
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __init__(self):
+        self.registry = {}
+
+    def register_widget(self, name, start_function, stop_function):
+        self.registry[name] = RegisteredWidget(name, start_function, stop_function)
+
+    def get_widget(self, name):
+        return self.registry[name]
+
 
 class running_event_widget:
 
@@ -91,6 +110,7 @@ class running_event:
             widget_name=widget_name
         )
 
+
 class ActiveEventTracker:
 
     _instance = None
@@ -104,11 +124,7 @@ class ActiveEventTracker:
     
     def __init__(self):
         self.running_events = {}
-        self.widget_registry = {}
         self.active_events = active_events()
-
-    def register_widget(self, name, start_function, stop_function):
-        self.widget_registry[name] = registered_widget(name, start_function, stop_function)
 
     async def start_active_event_loop(self):
         logger.info(f"Starting active event loop")
@@ -141,7 +157,7 @@ class ActiveEventTracker:
                 if widget_obj.status == "halted": continue # skip widgets that are already stopped
                 widget_name = widget_obj.widget_name
                 try:
-                    widget_registry_entry = self.widget_registry[widget_name]
+                    widget_registry_entry = widget_registry.get_widget(widget_name)
                     await widget_registry_entry.stop(widget_id, event_id)
                     widget_obj.update_status("halted")
                 except Exception as e:
@@ -160,6 +176,7 @@ class ActiveEventTracker:
 
         for event_id in events_to_delete:
             del self.running_events[event_id]
+
 
     async def start_active_events(self):
         logger.info(f"Starting active events")
@@ -184,7 +201,7 @@ class ActiveEventTracker:
 
                 while start_attempts < 5 and not start_success:
                     try:
-                        widget_registry_entry = self.widget_registry[widget["widgetName"]]
+                        widget_registry_entry = widget_registry.get_widget(widget["widgetName"])
                         await widget_registry_entry.start(widget["widget_id"], event["id"])
                         this_widget.update_status("active")
                         start_success = True
@@ -196,4 +213,5 @@ class ActiveEventTracker:
                     this_widget.update_status("failed to start")
                     logger.error(f"Failed to start widget {widget['widgetName']} after 5 attempts")
         
+widget_registry = WidgetRegistry()
 active_event_handler = ActiveEventTracker()

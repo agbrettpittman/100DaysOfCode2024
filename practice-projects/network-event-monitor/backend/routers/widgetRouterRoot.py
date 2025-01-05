@@ -1,7 +1,7 @@
 import os, logging, importlib.util
 from fastapi import APIRouter
 from utilities.dbConn import get_db
-from utilities.activeEventTracker import active_event_handler
+from utilities.activeEventTracker import widget_registry
 
 
 router = APIRouter(
@@ -47,7 +47,7 @@ def include_widget_routers():
         logger.info(f"Loaded router for {module_title}")
 
         # Register the widget with the active event tracker
-        active_event_handler.register_widget(
+        widget_registry.register_widget(
             name=widget_router_dir,
             start_function=module.start,
             stop_function=module.stop
