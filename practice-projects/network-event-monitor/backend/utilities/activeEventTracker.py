@@ -59,7 +59,7 @@ class running_event_widget:
     def __init__(self, widget_id, event_id, widget_name=""):
         self.id = widget_id
         self.event_id = event_id
-        self.widget_name = ""
+        self.widget_name = widget_name
         self.status = ""
         self.failure_history = []
 
@@ -134,17 +134,15 @@ class handler:
         # loop through the active events and stop any that are no longer active
         for event_id in self.running_events:
             if event_id in found_events_dict: continue
-            print(f"Stopping event {event_id}")
+            logger.info(f"Stopping event {event_id}")
             active_event_widgets = self.running_events[event_id].widgets
             failed_to_stop_widgets = []
             for widget_id, widget_obj in active_event_widgets.items():
                 if widget_obj.status == "halted": continue # skip widgets that are already stopped
                 widget_name = widget_obj.widget_name
-                print(f"Stopping Widget {widget_id}")
                 try:
                     widget_registry_entry = self.widget_registry[widget_name]
                     await widget_registry_entry.stop(widget_id, event_id)
-                    print(f"Stopped widget {widget_name} {widget_id}")
                     widget_obj.update_status("halted")
                 except Exception as e:
                     logger.error(f"Failed to stop widget {widget_name}: {e}")
@@ -157,7 +155,7 @@ class handler:
                     widget_name = widget_obj["widget_name"]
                     logger.critical(f"{widget_name} {widget_id} could not be stopped! Event will remain active.")
             else:
-                print(f"Event {event_id} has been stopped and will be removed from active events")
+                logger.info(f"Event {event_id} has been stopped and will be removed from active events")
                 events_to_delete.append(event_id)
 
         for event_id in events_to_delete:

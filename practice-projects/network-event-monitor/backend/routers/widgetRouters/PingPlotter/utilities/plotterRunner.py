@@ -50,12 +50,13 @@ class Plotter:
 
     async def stop(self):
         if not self.ping_task: return
-        print(f"Stopping plotter {self.id}")
+        logger.info(f"Stopping plotter {self.id}")
         self.ping_task.cancel()
         try:
             await self.ping_task
         except asyncio.CancelledError:
-            raise
+            logger.info(f"Plotter {self.id} stopped")
+            pass
 
     def get_hosts(self):
         with get_db() as (cursor, conn):
@@ -89,7 +90,6 @@ class Plotter:
                 await asyncio.gather(*tasks)
                 await asyncio.sleep(self.sleep_seconds)
         except asyncio.CancelledError:
-            print(f"Ping task for plotter {self.id} cancelled")
             raise
 
     async def _resolve_host(self, host):
