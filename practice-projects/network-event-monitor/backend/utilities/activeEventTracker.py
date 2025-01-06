@@ -84,6 +84,27 @@ class running_event:
             widget_name=widget_name
         )
 
+    async def stop(self):
+        failed_to_stop_widgets = []
+        for widget_id, widget_obj in self.widgets.items():
+            if widget_obj.status == "halted": continue # skip widgets that are already stopped
+            widget_name = widget_obj.widget_name
+            try:
+                widget_registry_entry = widget_registry.get_widget(widget_name)
+                await widget_registry_entry.stop(widget_id, self.event_id)
+                widget_obj.update_status("halted")
+            except Exception as e:
+                logger.error(f"Failed to stop widget {widget_name}: {e}")
+                widget_obj.update_status("failed to stop")
+                failed_to_stop_widgets.append(widget_obj)
+        
+        if len(failed_to_stop_widgets) > 0:
+            for widget_obj in failed_to_stop_widgets:
+                widget_id = widget_obj["widget_id"]
+                widget_name = widget_obj["widget_name"]
+                logger.critical(f"{widget_name} {widget_id} could not be stopped!")
+            raise Exception("Failed to stop all widgets")
+
 
 class ActiveEventTracker:
 
@@ -125,28 +146,12 @@ class ActiveEventTracker:
         for event_id in self.running_events:
             if event_id in found_events_dict: continue
             logger.info(f"Stopping event {event_id}")
-            active_event_widgets = self.running_events[event_id].widgets
-            failed_to_stop_widgets = []
-            for widget_id, widget_obj in active_event_widgets.items():
-                if widget_obj.status == "halted": continue # skip widgets that are already stopped
-                widget_name = widget_obj.widget_name
-                try:
-                    widget_registry_entry = widget_registry.get_widget(widget_name)
-                    await widget_registry_entry.stop(widget_id, event_id)
-                    widget_obj.update_status("halted")
-                except Exception as e:
-                    logger.error(f"Failed to stop widget {widget_name}: {e}")
-                    widget_obj.update_status("failed to stop")
-                    failed_to_stop_widgets.append(widget_obj)
-            
-            if len(failed_to_stop_widgets) > 0:
-                for widget_obj in failed_to_stop_widgets:
-                    widget_id = widget_obj["widget_id"]
-                    widget_name = widget_obj["widget_name"]
-                    logger.critical(f"{widget_name} {widget_id} could not be stopped! Event will remain active.")
-            else:
-                logger.info(f"Event {event_id} has been stopped and will be removed from active events")
+            try:
+                await self.running_events[event_id].stop()
                 events_to_delete.append(event_id)
+            except Exception as e:
+                logger.error(f"Failed to stop event {event_id}: {e}")
+                logger.error(f"Event {event_id} will continue to run")
 
         for event_id in events_to_delete:
             del self.running_events[event_id]
