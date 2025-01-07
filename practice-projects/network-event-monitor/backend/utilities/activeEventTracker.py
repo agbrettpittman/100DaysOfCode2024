@@ -77,6 +77,17 @@ class running_event_widget:
             self.update_status("failed to start")
             logger.error(f"Failed to start {self.widget_name} {self.id} after 5 attempts")
 
+    async def stop(self):
+        try:
+            if self.status == "halted": return
+            widget_registry_entry = widget_registry.get_widget(self.widget_name)
+            await widget_registry_entry.stop(self.id, self.event_id)
+            self.update_status("halted")
+        except Exception as e:
+            self.add_failure("stop", 1, str(e))
+            logger.critical(f"Failed to stop {self.widget_name} {self.id}")
+            raise e
+
     def add_failure(self, type: str, id:int, message: str):
         self.failure_history.append({
             "type": type,
@@ -106,25 +117,17 @@ class running_event:
         )
 
     async def stop(self):
-        failed_to_stop_widgets = []
-        for widget_id, widget_obj in self.widgets.items():
-            if widget_obj.status == "halted": continue # skip widgets that are already stopped
-            widget_name = widget_obj.widget_name
+        failed_to_stop_widgets = 0
+        total_widgets = len(self.widgets)
+        for event_widget in self.widgets.values():
             try:
-                widget_registry_entry = widget_registry.get_widget(widget_name)
-                await widget_registry_entry.stop(widget_id, self.event_id)
-                widget_obj.update_status("halted")
+                await event_widget.stop()
             except Exception as e:
-                logger.error(f"Failed to stop widget {widget_name}: {e}")
-                widget_obj.update_status("failed to stop")
-                failed_to_stop_widgets.append(widget_obj)
+                print(f"Failed to stop widget {event_widget.id}: {e}")
+                failed_to_stop_widgets += 1
         
-        if len(failed_to_stop_widgets) > 0:
-            for widget_obj in failed_to_stop_widgets:
-                widget_id = widget_obj["widget_id"]
-                widget_name = widget_obj["widget_name"]
-                logger.critical(f"{widget_name} {widget_id} could not be stopped!")
-            raise Exception("Failed to stop all widgets")
+        if failed_to_stop_widgets:
+            raise Exception(f"Failed to stop {failed_to_stop_widgets} widgets out of {total_widgets}")
 
 
 class ActiveEventTracker:
