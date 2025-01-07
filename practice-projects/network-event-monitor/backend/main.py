@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from utilities.dbConn import initialize_database
-from utilities.activeEventTracker import active_event_handler
+from utilities.eventManagement.event_handler import event_handler
 from routers import events, widgetRouterRoot
 import os
 
@@ -27,4 +27,4 @@ app.include_router(widgetRouterRoot.router)
 
 @app.on_event("startup")
 async def on_startup():
-    await active_event_handler.activate()
+    await event_handler.activate()
