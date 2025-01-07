@@ -56,6 +56,27 @@ class running_event_widget:
         self.status = ""
         self.failure_history = []
 
+    async def start(self):
+        skippable_statuses = ["halted", "active"]
+        if self.status in skippable_statuses: return
+        
+        start_attempts = 0
+        start_success = False
+
+        while start_attempts < 5 and not start_success:
+            try:
+                widget_registry_entry = widget_registry.get_widget(self.widget_name)
+                await widget_registry_entry.start(self.id, self.event_id)
+                self.update_status("active")
+                start_success = True
+            except Exception as e:
+                start_attempts += 1
+                self.add_failure("start", start_attempts, str(e))
+                time.sleep(5)
+        if not start_success:
+            self.update_status("failed to start")
+            logger.error(f"Failed to start {self.widget_name} {self.id} after 5 attempts")
+
     def add_failure(self, type: str, id:int, message: str):
         self.failure_history.append({
             "type": type,
@@ -171,25 +192,7 @@ class ActiveEventTracker:
             for widget in event_widgets:
                 if widget['widget_id'] not in this_event.widgets:
                     this_event.add_widget(widget['widget_id'], widget['widgetName'])
-                this_widget = this_event.widgets[widget['widget_id']]
-                skippable_statuses = ["halted", "active"]
-                if this_widget.status in skippable_statuses: continue
+                    await this_event.widgets[widget['widget_id']].start()
                 
-                start_attempts = 0
-                start_success = False
-
-                while start_attempts < 5 and not start_success:
-                    try:
-                        widget_registry_entry = widget_registry.get_widget(widget["widgetName"])
-                        await widget_registry_entry.start(widget["widget_id"], event["id"])
-                        this_widget.update_status("active")
-                        start_success = True
-                    except Exception as e:
-                        start_attempts += 1
-                        this_widget.add_failure("start", start_attempts, str(e))
-                        time.sleep(5)
-                if not start_success:
-                    this_widget.update_status("failed to start")
-                    logger.error(f"Failed to start widget {widget['widgetName']} after 5 attempts")
 
 active_event_handler = ActiveEventTracker()
