@@ -109,12 +109,18 @@ class running_event:
         self.event_id = event_id
         self.widgets = {}
 
-    def add_widget(self, widget_id, widget_name):
+    async def add_widget(self, widget_id, widget_name):
         self.widgets[widget_id] = running_event_widget(
             widget_id=widget_id,
             event_id=self.event_id,
             widget_name=widget_name
         )
+        await self.widgets[widget_id].start()
+
+    def load_widgets(self, widgets):
+        for widget_id, widget in widgets.items():
+            if widget_id not in self.widgets:
+                self.add_widget(widget_id, widget["widgetName"])
 
     async def stop(self):
         failed_to_stop_widgets = 0
@@ -192,10 +198,8 @@ class ActiveEventTracker:
             this_event = self.running_events[event["id"]]
             if event["id"] in widgets_by_event:
                 event_widgets = widgets_by_event[event["id"]]
-            for widget in event_widgets:
-                if widget['widget_id'] not in this_event.widgets:
-                    this_event.add_widget(widget['widget_id'], widget['widgetName'])
-                    await this_event.widgets[widget['widget_id']].start()
+                this_event.load_widgets(event_widgets)
+                        
                 
 
 active_event_handler = ActiveEventTracker()
