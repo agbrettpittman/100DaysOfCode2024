@@ -61,6 +61,20 @@ class Plotter:
 
         return results
     
+
+    async def _add_ping_to_db(self, data):
+        with get_db() as (cursor, conn):
+            try:
+                cursor.execute('''
+                    INSERT INTO widgets_PingPlotter_results (sendTime, success, latency, hosts_id)
+                    VALUES (:sendTime, :success, :latency, :hosts_id)
+                ''', data)
+                conn.commit()
+            except Exception as e:
+                conn.rollback()
+                logger.error(f"Failed to insert ping into database for plotter {self.id}, host {data['hosts_id']}")
+                logger.error(e)
+
     async def _host_ping_loop(self):
         try:
             while True:
@@ -109,6 +123,12 @@ class Plotter:
         
         data["receivedTime"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+        await self._add_ping_to_db({
+            "sendTime": data["sendTime"],
+            "success": 1 if data["status"] == "success" else 0,
+            "latency": data["latency"],
+            "hosts_id": data["host_id"]
+        })
         await event_sockets.broadcast_update(
             event_id=self.event_id, 
             widget_name="PingPlotter", 
