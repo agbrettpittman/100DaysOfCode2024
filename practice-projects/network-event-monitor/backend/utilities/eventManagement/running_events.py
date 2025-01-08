@@ -26,6 +26,7 @@ class RunningEventWidget:
                 await widget_registry_entry.start(self.id, self.event_id)
                 self.update_status("active")
                 start_success = True
+                logger.info(f"Started {self.widget_name} {self.id}")
             except Exception as e:
                 start_attempts += 1
                 self.add_failure("start", start_attempts, str(e))
@@ -74,10 +75,13 @@ class RunningEvent:
         )
         await self.widgets[widget_id].start()
 
-    def load_widgets(self, widgets):
-        for widget_id, widget in widgets.items():
-            if widget_id not in self.widgets:
-                self.add_widget(widget_id, widget["widgetName"])
+    async def load_widgets(self, widget_list):
+        print(f"Loading widgets for event {self.event_id}")
+        for widget in widget_list:
+            print(f"Loading widget {widget['widget_id']}")
+            print(dict(widget))
+            if widget["widget_id"] not in self.widgets:
+                await self.add_widget(widget["widget_id"], widget["widgetName"])
 
     async def stop(self):
         failed_to_stop_widgets = 0

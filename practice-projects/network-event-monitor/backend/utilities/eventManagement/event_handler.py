@@ -66,8 +66,6 @@ class EventHandler:
             this_event = self.running_events[event["id"]]
             if event["id"] in widgets_by_event:
                 event_widgets = widgets_by_event[event["id"]]
-                this_event.load_widgets(event_widgets)
-                        
-                
+                await this_event.load_widgets(event_widgets)                       
 
 event_handler = EventHandler()
