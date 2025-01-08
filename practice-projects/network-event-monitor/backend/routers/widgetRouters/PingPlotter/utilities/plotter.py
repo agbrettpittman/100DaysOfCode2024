@@ -60,7 +60,7 @@ class Plotter:
                 results["errored"].append(host)
 
         return results
-
+    
     async def _host_ping_loop(self):
         try:
             while True:
@@ -84,7 +84,7 @@ class Plotter:
             "plotter_id": self.id,
             "host_id": host['id'],
             "host": host['host'],
-            "delay": None,
+            "latency": None,
             "status": None,
             "details": None,
             "datetime": None
@@ -93,8 +93,8 @@ class Plotter:
             if host['host'] in self.host_resolutions["errored"] or host['host'] not in self.host_resolutions["resolutions"]:
                 raise Exception("DNS resolution failed")
             resolved_ip = self.host_resolutions["resolutions"][host['host']]
-            delay = await aioping.ping(resolved_ip)  # Returns delay in seconds
-            data["delay"] = f"{delay*1000:.2f} ms"
+            latency = await aioping.ping(resolved_ip)  # Returns delay in seconds
+            data["latency"] = f"{latency*1000:.2f} ms"
             data["status"] = "success"
         except TimeoutError:
             data["status"] = "error"

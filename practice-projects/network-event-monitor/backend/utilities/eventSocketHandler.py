@@ -1,8 +1,9 @@
+import logging
 from fastapi import WebSocket, WebSocketDisconnect
-from typing import Dict, List
-from fastapi import APIRouter, Depends, WebSocket
-from pydantic import BaseModel
-from sqlite3 import Connection, Cursor
+from typing import Dict
+from fastapi import WebSocket
+
+logger = logging.getLogger("uvicorn")
 
 class new_handler:
     _instance = None
@@ -27,17 +28,16 @@ class new_handler:
 
     async def new_connection(self, websocket: WebSocket, event_id: int):
         await websocket.accept()
-        print(f"New connection for event {event_id}")
+        logger.info(f"New connection for event {event_id}")
         if event_id not in self.socket_connections:
             self.socket_connections[event_id] = []
         self.socket_connections[event_id].append(websocket)
 
         try:
             while True:
-                data = await websocket.receive_json()
-                print(f"Data received: {data}")
+                await websocket.receive_json()
         except WebSocketDisconnect:
-            print(f"Connection closed for event {event_id}")
+            logger.info(f"Connection closed for event {event_id}")
             if event_id in self.socket_connections:
                 self.socket_connections[event_id].remove(websocket)
                 if len(self.socket_connections[event_id]) == 0:

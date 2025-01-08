@@ -55,7 +55,7 @@ export default function HostTable() {
                         [message.data.host_id]: {
                             ...prevValue[message.data.host_id],
                             status: message.data.status,
-                            delay: message.data.delay,
+                            latency: message.data.latency,
                             lastUpdate: parsedDateTime
                         }
                     };
@@ -183,7 +183,7 @@ export default function HostTable() {
                             {editHostId !== host.id && (
                                 <TableCell width={'auto'}>
                                     <Box display='flex' alignItems='center' widgth='8em' justifyContent={'end'} gap={1}>
-                                        {host.delay}
+                                        {host.latency}
                                         {host.lastUpdate ? ` (${host.lastUpdate})` : ''}
                                         <StatusIndicator status={host.status} />
                                     </Box>
