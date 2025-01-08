@@ -87,7 +87,8 @@ class Plotter:
             "latency": None,
             "status": None,
             "details": None,
-            "datetime": None
+            "sendTime": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "receivedTime": None
         }
         try:
             if host['host'] in self.host_resolutions["errored"] or host['host'] not in self.host_resolutions["resolutions"]:
@@ -106,7 +107,7 @@ class Plotter:
             else:
                 data["details"] = str(e)
         
-        data["datetime"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        data["receivedTime"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         await event_sockets.broadcast_update(
             event_id=self.event_id, 

@@ -43,7 +43,7 @@ export default function HostTable() {
             for (let i = messages.length - 1; i >= 0; i--) {
                 const message = messages[i];
                 if (hostsNeedingUpdate.includes(message.data.host_id.toString())) {
-                    const Datetime = moment(message.data.datetime)
+                    const Datetime = moment(message.data.receivedTime)
                     let parsedDateTime = Datetime.format('h:mm A')
                     // if the datetime is not today, show the date
                     if (!Datetime.isSame(moment(), 'day')) {
