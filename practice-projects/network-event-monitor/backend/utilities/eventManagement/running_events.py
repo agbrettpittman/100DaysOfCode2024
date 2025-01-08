@@ -76,10 +76,7 @@ class RunningEvent:
         await self.widgets[widget_id].start()
 
     async def load_widgets(self, widget_list):
-        print(f"Loading widgets for event {self.event_id}")
         for widget in widget_list:
-            print(f"Loading widget {widget['widget_id']}")
-            print(dict(widget))
             if widget["widget_id"] not in self.widgets:
                 await self.add_widget(widget["widget_id"], widget["widgetName"])
 

@@ -37,7 +37,6 @@ class EventHandler:
         asyncio.create_task(self.start_active_event_loop())
 
     async def stop_inactive_events(self):
-        logger.info(f"Stopping inactive events")
         events_to_delete = []
         found_events_dict = self.active_events.events.to_dict()
         # loop through the active events and stop any that are no longer active
@@ -56,7 +55,6 @@ class EventHandler:
 
 
     async def start_active_events(self):
-        logger.info(f"Starting active events")
         widgets_by_event = self.active_events.widgets_by_event()
 
         # loop through the found events and start any that are not already active
