@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from .routers import plotters
 from .utilities.db import initialize_database
-from .utilities.plotterRunner import plotter_runner
+from .utilities.plotter_runner import plotter_runner
 
 title = "Ping Plotter"
 
