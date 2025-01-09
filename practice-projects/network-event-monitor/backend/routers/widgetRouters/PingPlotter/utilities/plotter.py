@@ -60,7 +60,6 @@ class Plotter:
                 results["errored"].append(host)
 
         return results
-    
 
     async def _add_ping_to_db(self, data):
         with get_db() as (cursor, conn):
@@ -109,7 +108,7 @@ class Plotter:
                 raise Exception("DNS resolution failed")
             resolved_ip = self.host_resolutions["resolutions"][host['host']]
             latency = await aioping.ping(resolved_ip)  # Returns delay in seconds
-            data["latency"] = f"{latency*1000:.2f} ms"
+            data["latency"] = f"{latency*1000:.2f}"
             data["status"] = "success"
         except TimeoutError:
             data["status"] = "error"
@@ -133,5 +132,5 @@ class Plotter:
             event_id=self.event_id, 
             widget_name="PingPlotter", 
             widget_id=self.id, 
-            data=data
+            data={**data, "latency": f"{data['latency']} ms"}
         )
