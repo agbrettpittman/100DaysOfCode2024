@@ -1,4 +1,4 @@
-import aioping, asyncio, aiodns, logging
+import aioping, asyncio, aiodns, logging, json
 from utilities.dbConn import get_db
 from utilities.eventSocketHandler import event_sockets
 from typing import List, Dict
@@ -60,6 +60,47 @@ class Plotter:
                 results["errored"].append(host)
 
         return results
+    
+    async def summarize_results(self):
+        results = []
+        with get_db() as (cursor, conn):
+            try:
+                cursor.execute('''
+                    SELECT
+                        widgets_PingPlotter_hosts.id,
+                        COUNT(CASE WHEN widgets_PingPlotter_results.success = 0 THEN 1 END) AS failures,
+                        COUNT(CASE WHEN widgets_PingPlotter_results.success = 1 THEN 1 END) AS success,
+                        ROUND(
+                            AVG(
+                            CASE WHEN widgets_PingPlotter_results.success = 1 THEN widgets_PingPlotter_results.latency END
+                            )
+                        , 2) AS latencyAvg,
+                        latest.sendTime AS latestSendTime,
+                        latest.latency AS latestLatency
+                    FROM widgets_PingPlotter_hosts
+                    LEFT JOIN widgets_PingPlotter_results 
+                        ON widgets_PingPlotter_hosts.id = widgets_PingPlotter_results.hosts_id
+                    LEFT JOIN (
+                        SELECT
+                            hosts_id, 
+                            sendTime,
+                            latency
+                        FROM widgets_PingPlotter_results
+                        WHERE (hosts_id, id) IN (
+                            SELECT hosts_id, MAX(id) AS id
+                            FROM widgets_PingPlotter_results
+                            GROUP BY hosts_id
+                        )
+                    ) AS latest
+                        ON widgets_PingPlotter_hosts.id = latest.hosts_id
+                    WHERE widgets_PingPlotter_hosts.plotter_id = :plotter_id
+                    GROUP BY widgets_PingPlotter_hosts.id;
+                ''', {"plotter_id": self.id})
+                results = cursor.fetchall()
+            except Exception as e:
+                logger.error(f"Failed to summarize results for plotter {self.id}")
+                logger.error(e)
+        return results
 
     async def _add_ping_to_db(self, data):
         with get_db() as (cursor, conn):
@@ -93,10 +134,8 @@ class Plotter:
             return {"host": host, "resolved_ip": None, "status": "error", "details": str(e)}
         
     async def _ping_host(self, host):
-        data={
-            "plotter_id": self.id,
-            "host_id": host['id'],
-            "host": host['host'],
+        
+        results = {
             "latency": None,
             "status": None,
             "details": None,
@@ -108,29 +147,57 @@ class Plotter:
                 raise Exception("DNS resolution failed")
             resolved_ip = self.host_resolutions["resolutions"][host['host']]
             latency = await aioping.ping(resolved_ip)  # Returns delay in seconds
-            data["latency"] = f"{latency*1000:.2f}"
-            data["status"] = "success"
+            results["latency"] = f"{latency*1000:.2f}"
+            results["status"] = "success"
         except TimeoutError:
-            data["status"] = "error"
-            data["details"] = "Timeout"
+            results["status"] = "error"
+            results["details"] = "Timeout"
         except Exception as e:
-            data["status"] = "error"
+            results["status"] = "error"
             if host['host'] in self.host_resolutions["errored"]:
-                data["details"] = "DNS resolution failed"
+                results["details"] = "DNS resolution failed"
             else:
-                data["details"] = str(e)
+                results["details"] = str(e)
         
-        data["receivedTime"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        results["receivedTime"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         await self._add_ping_to_db({
-            "sendTime": data["sendTime"],
-            "success": 1 if data["status"] == "success" else 0,
-            "latency": data["latency"],
-            "hosts_id": data["host_id"]
+            "sendTime": results["sendTime"],
+            "success": 1 if results["status"] == "success" else 0,
+            "latency": results["latency"],
+            "hosts_id": host['id']
         })
+        try:
+            result_summary = await self.summarize_results()
+            summary = {}
+            for single_summary in result_summary:
+                summary_value = dict(single_summary)
+                summary_key = int(single_summary['id'])
+                del summary_value['id']
+                summary[summary_key] = summary_value
+            print(f"======== Plotter {self.id} summary ========")
+            print(json.dumps(summary, indent=4))
+            print("=====================================")
+        except Exception as e:
+            logger.error(f"Failed to summarize results for plotter {self.id}")
+            logger.error(e)
+            result_summary = {}
+
+        data={
+            "plotter_id": self.id,
+            "host_id": host['id'],
+            "host": host['host'],
+            "latency": f"{results['latency']} ms" if results["latency"] else None,
+            "status": results["status"],
+            "details": results["details"],
+            "sendTime": results["sendTime"],
+            "receivedTime": results["receivedTime"],
+            "summary": result_summary
+        }
+        
         await event_sockets.broadcast_update(
             event_id=self.event_id, 
             widget_name="PingPlotter", 
             widget_id=self.id, 
-            data={**data, "latency": f"{data['latency']} ms"}
+            data={data}
         )
