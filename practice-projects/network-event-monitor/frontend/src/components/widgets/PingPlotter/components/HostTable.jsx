@@ -12,8 +12,8 @@ import moment from 'moment';
 
 function getStatusColor({ status, theme }) {
     let color = theme.palette.grey.A400
-    if (status === 'success') color = theme.palette.success.light
-    if (status === 'error') color = theme.palette.error.light
+    if (status === true) color = theme.palette.success.light
+    if (status === false) color = theme.palette.error.light
     return color
 }
 
@@ -38,31 +38,27 @@ export default function HostTable() {
 
     useEffect(() => {
         setHosts(prevValue => {
-            let hostsNeedingUpdate = Object.keys(prevValue);
-
-            for (let i = messages.length - 1; i >= 0; i--) {
-                const message = messages[i];
-                if (hostsNeedingUpdate.includes(message.data.host_id.toString())) {
-                    const Datetime = moment(message.data.receivedTime)
-                    let parsedDateTime = Datetime.format('h:mm A')
-                    // if the datetime is not today, show the date
-                    if (!Datetime.isSame(moment(), 'day')) {
-                        parsedDateTime = Datetime.format('M/D/YY h:mm A')
-                    }
-
-                    prevValue = {
-                        ...prevValue,
-                        [message.data.host_id]: {
-                            ...prevValue[message.data.host_id],
-                            status: message.data.status,
-                            latency: message.data.latency,
-                            lastUpdate: parsedDateTime
-                        }
-                    };
-                    hostsNeedingUpdate = hostsNeedingUpdate.filter(id => id !== message.data.host_id.toString());
+            const message = messages[messages.length - 1];
+            if (!message) return prevValue;
+            console.log(message);
+            const Summary = message.data.summary;
+            for (let [hostId, summaryEntry] of Object.entries(Summary)) {
+                const Datetime = moment(summaryEntry.latestSendTime);
+                let parsedDateTime = Datetime.format('h:mm A')
+                if (!Datetime.isSame(moment(), 'day')) {
+                    parsedDateTime = Datetime.format('M/D/YY h:mm A')
                 }
-                if (hostsNeedingUpdate.length === 0) break;
+                prevValue = {
+                    ...prevValue,
+                    [hostId]: {
+                        ...prevValue[hostId],
+                        status: Boolean(summaryEntry.latestSuccess),
+                        latency: summaryEntry.latestLatency,
+                        lastUpdate: parsedDateTime
+                    }
+                };
             }
+           
             return prevValue;
         });
     }, [messages]);
