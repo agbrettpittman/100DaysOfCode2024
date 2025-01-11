@@ -16,14 +16,13 @@ widget_routers_path = f"./{'/'.join(package_root.split('.'))}"
 def include_widget_routers():
     # Dynamically import and include routers from subdirectories
     for widget_router_dir in os.listdir(widget_routers_path):
+        skippable_dirs = ["__pycache__"]
+        if widget_router_dir in skippable_dirs: continue
         subdir_path = os.path.join(widget_routers_path, widget_router_dir)
-        router_index_path = os.path.join(subdir_path, "routerIndex.py")
         
-        if not os.path.isdir(subdir_path) or not os.path.isfile(router_index_path): continue
-        spec = importlib.util.spec_from_file_location(f"{widget_router_dir}.routerIndex", router_index_path)
-        module = importlib.util.module_from_spec(spec)
-        module.__package__ = f"{package_root}.{widget_router_dir}"
-        spec.loader.exec_module(module)
+        if not os.path.isdir(subdir_path): continue
+        module_name = f"{package_root}.{widget_router_dir}"
+        module = importlib.import_module(module_name)
 
         # Get the title of the module
         module_title = module.title if hasattr(module, "title") else widget_router_dir
