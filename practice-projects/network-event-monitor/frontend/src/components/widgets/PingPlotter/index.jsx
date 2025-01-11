@@ -2,8 +2,8 @@ import requestor from '@utilities/requestor'
 import {useEffect, useState, useContext, createContext} from 'react'
 import { toast } from 'react-toastify'
 import { WidgetsContext } from '@components/EventWidgets'
-import { Delete } from '@mui/icons-material'
-import { Box, Typography, useTheme } from '@mui/material'
+import { Delete, ChevronRight, ChevronLeft } from '@mui/icons-material'
+import { Box, IconButton, Typography, useTheme } from '@mui/material'
 import HoldIconButton from '@components/ui/HoldIconButton'
 import { transparentize } from 'polished'
 import AddHost from './components/AddHost'
@@ -39,9 +39,11 @@ export default function PingPlotter({widgetId = null, messages = []}) {
         name: '',
     })
     const [HostsAdded, setHostsAdded] = useState([])
+    const [DisplayDetails, setDisplayDetails] = useState(false)
     const Theme = useTheme()
     const InitialDeleteIconColor = transparentize(0.5, Theme.palette.error.main)
     const RouterRoot = "/widgets/ping-plotter/plotters"
+    const ColumnSpan = DisplayDetails ? 'span 2' : 'span 1'
 
     useEffect(() => {
         if (!widgetId) return
@@ -64,9 +66,9 @@ export default function PingPlotter({widgetId = null, messages = []}) {
     }
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, gridColumn: ColumnSpan }}>
             <PingPlotterContext.Provider value={{id: widgetId, HostsAdded, setHostsAdded, messages}}>
-                <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, alignItems: 'center' }}>
+                <Box sx={{ display: 'grid', gap: 1, gridTemplateColumns: 'auto 1fr auto', alignItems: 'center' }}>
                     <HoldIconButton 
                         color={InitialDeleteIconColor} 
                         hoverColor={Theme.palette.error.main} 
@@ -77,9 +79,16 @@ export default function PingPlotter({widgetId = null, messages = []}) {
                     <Typography variant="h5">
                         {Data.name}
                     </Typography>
+                    <IconButton 
+                        onClick={() => setDisplayDetails(!DisplayDetails)}
+                        color="secondary"
+
+                    >
+                        {DisplayDetails ? <ChevronLeft /> : <ChevronRight />}
+                    </IconButton>
                 </Box>
-                <AddHost/>
-                <HostTable/>
+                <AddHost />
+                <HostTable displayDetails={DisplayDetails}/>
             </PingPlotterContext.Provider>
         </Box>
     )

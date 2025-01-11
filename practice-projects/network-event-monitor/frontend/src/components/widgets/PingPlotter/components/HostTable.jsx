@@ -24,7 +24,7 @@ const StatusIndicator = styled.div`
     background-color: ${getStatusColor};
 `;
 
-export default function HostTable() {
+export default function HostTable({displayDetails = false}) {
     const [hosts, setHosts] = useState({});
     const [editHostId, setEditHostId] = useState(null);
     const [editHostValue, setEditHostValue] = useState('');
@@ -40,8 +40,8 @@ export default function HostTable() {
         setHosts(prevValue => {
             const message = messages[messages.length - 1];
             if (!message) return prevValue;
-            console.log(message);
             const Summary = message.data.summary;
+            console.log(Summary);
             for (let [hostId, summaryEntry] of Object.entries(Summary)) {
                 const Datetime = moment(summaryEntry.latestSendTime);
                 let parsedDateTime = Datetime.format('h:mm A')
@@ -54,7 +54,10 @@ export default function HostTable() {
                         ...prevValue[hostId],
                         status: Boolean(summaryEntry.latestSuccess),
                         latency: summaryEntry.latestLatency,
-                        lastUpdate: parsedDateTime
+                        lastUpdate: parsedDateTime,
+                        failures: summaryEntry.failures,
+                        successes: summaryEntry.successes,
+                        latencyAvg: summaryEntry.latencyAvg,
                     }
                 };
             }
@@ -125,9 +128,28 @@ export default function HostTable() {
             });
     }
 
+    function getHostColumnSpan(id) {
+        if (editHostId !== id) return 1;
+        if (!displayDetails) return 2;
+        return 5;
+    }
+
     return (
         <TableContainer component={Paper}>
             <Table>
+                {displayDetails && (
+                    <TableHead>
+                        <TableRow>
+                            <TableCell></TableCell>
+                            <TableCell></TableCell>
+                            <TableCell>Host</TableCell>
+                            <TableCell align="center">Average Latency</TableCell>
+                            <TableCell align="center">Successes</TableCell>
+                            <TableCell align="center">Failures</TableCell>
+                            <TableCell align="right">Status</TableCell>
+                        </TableRow>
+                    </TableHead>
+                )}
                 <TableBody>
                     {Object.values(hosts).map((host) => (
                         <TableRow key={host.id}>
@@ -166,24 +188,40 @@ export default function HostTable() {
                                     </HoldIconButton>
                                 )}
                             </TableCell>
-                            <TableCell>
+                            <TableCell colSpan={getHostColumnSpan(host.id)}>
                                 {editHostId === host.id ? (
                                     <TextField
                                         value={editHostValue}
                                         onChange={(e) => setEditHostValue(e.target.value)}
+                                        fullWidth
                                     />
                                 ) : (
                                     host.host
                                 )}
                             </TableCell>
                             {editHostId !== host.id && (
-                                <TableCell width={'auto'}>
-                                    <Box display='flex' alignItems='center' widgth='8em' justifyContent={'end'} gap={1}>
-                                        {host.latency}
-                                        {host.lastUpdate ? ` (${host.lastUpdate})` : ''}
-                                        <StatusIndicator status={host.status} />
-                                    </Box>
-                                </TableCell>
+                                <>
+                                    {displayDetails && (
+                                        <>
+                                            <TableCell align="center">
+                                                {host.latencyAvg}
+                                            </TableCell>
+                                            <TableCell align="center">
+                                                {host.successes}
+                                            </TableCell>
+                                            <TableCell align="center">
+                                                {host.failures}
+                                            </TableCell>
+                                        </>
+                                    )}
+                                    <TableCell width={'auto'}>
+                                        <Box display='flex' alignItems='center' widgth='8em' justifyContent={'end'} gap={1}>
+                                            {host.latency}
+                                            {host.lastUpdate ? ` (${host.lastUpdate})` : ''}
+                                            <StatusIndicator status={host.status} />
+                                        </Box>
+                                    </TableCell>
+                                </>
                             )}
                         </TableRow>
                     ))}

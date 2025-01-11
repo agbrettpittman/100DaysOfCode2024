@@ -69,7 +69,7 @@ class Plotter:
                     SELECT
                         widgets_PingPlotter_hosts.id,
                         COUNT(CASE WHEN widgets_PingPlotter_results.success = 0 THEN 1 END) AS failures,
-                        COUNT(CASE WHEN widgets_PingPlotter_results.success = 1 THEN 1 END) AS success,
+                        COUNT(CASE WHEN widgets_PingPlotter_results.success = 1 THEN 1 END) AS successes,
                         ROUND(
                             AVG(
                             CASE WHEN widgets_PingPlotter_results.success = 1 THEN widgets_PingPlotter_results.latency END

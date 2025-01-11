@@ -15,6 +15,13 @@ const WidgetGrid = styled(Box)`
     margin-top: 16px;
     grid-template-columns: repeat(auto-fill, 500px);
     grid-template-rows: repeat(auto-fill, 500px);
+
+    & > * {
+        border: 1px solid;
+        border-color: rgba(0, 0, 0, 0.12);
+        border-radius: 4px;
+        padding: 8px;
+    }
 `;
 
 export default function EventWidgets() {
@@ -201,11 +208,7 @@ export default function EventWidgets() {
                         
                         const { Component } = loadedWidget;
                         const messages = SocketUpdates.filter((update) => update.widget_id === widget_id);
-                        return (
-                            <Box key={widget.id} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 1 }}>
-                                <Component widgetId={widget_id} messages={messages} />
-                            </Box>
-                        );
+                        return <Component widgetId={widget_id} messages={messages} />
                     })}
                 </WidgetGrid>
             </WidgetsContext.Provider>
