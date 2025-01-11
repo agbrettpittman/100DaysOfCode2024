@@ -10,7 +10,8 @@ router = APIRouter(
 
 logger = logging.getLogger("uvicorn")
 
-widget_routers_path = './routers/widgetRouters'
+package_root = "routers.widgets"
+widget_routers_path = f"./{'/'.join(package_root.split('.'))}"
 
 def include_widget_routers():
     # Dynamically import and include routers from subdirectories
@@ -21,7 +22,7 @@ def include_widget_routers():
         if not os.path.isdir(subdir_path) or not os.path.isfile(router_index_path): continue
         spec = importlib.util.spec_from_file_location(f"{widget_router_dir}.routerIndex", router_index_path)
         module = importlib.util.module_from_spec(spec)
-        module.__package__ = f"routers.widgetRouters.{widget_router_dir}"
+        module.__package__ = f"{package_root}.{widget_router_dir}"
         spec.loader.exec_module(module)
 
         # Get the title of the module
