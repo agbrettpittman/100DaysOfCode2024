@@ -82,7 +82,6 @@ export default function PingPlotter({widgetId = null, messages = []}) {
                     <IconButton 
                         onClick={() => setDisplayDetails(!DisplayDetails)}
                         color="secondary"
-
                     >
                         {DisplayDetails ? <ChevronLeft /> : <ChevronRight />}
                     </IconButton>

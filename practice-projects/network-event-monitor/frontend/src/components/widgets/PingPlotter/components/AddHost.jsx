@@ -1,10 +1,11 @@
 import React, { useState, useContext } from 'react';
 import TextField from '@mui/material/TextField';
-import Button from '@mui/material/Button';
+import IconButton from '@mui/material/Button';
 import { toast } from 'react-toastify';
 import requestor from '@utilities/requestor';
 import { PingPlotterContext } from '..';
 import { Box } from '@mui/material';
+import { Add } from '@mui/icons-material';
 
 function AddHost(){
     const [host, setHost] = useState('');
@@ -33,13 +34,12 @@ function AddHost(){
                 onChange={(e) => setHost(e.target.value)}
                 size="small"
             />
-            <Button 
-                variant="contained" 
+            <IconButton 
                 color="primary" 
                 onClick={handleAddHost}
             >
-                Add Host
-            </Button>
+                <Add />
+            </IconButton>
         </Box>
     );
 };
