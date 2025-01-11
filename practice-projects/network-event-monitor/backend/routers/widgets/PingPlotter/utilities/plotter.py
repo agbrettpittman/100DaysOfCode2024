@@ -46,8 +46,10 @@ class Plotter:
                 WHERE plotter_id = :plotter_id
             ''', {"plotter_id": self.id})
             hosts = cursor.fetchall()
+            new_hosts = []
             for host in hosts:
-                self.hosts.append(dict(host))
+                new_hosts.append(dict(host))
+            self.hosts = new_hosts
 
     async def resolve_hosts(self):
         results = {"errored": [], "resolutions": {}}
@@ -147,7 +149,6 @@ class Plotter:
             raise
         
     async def _ping_host(self, host):
-        
         results = {
             "latency": None,
             "status": None,

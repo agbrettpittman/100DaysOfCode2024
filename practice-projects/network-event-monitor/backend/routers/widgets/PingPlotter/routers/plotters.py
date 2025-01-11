@@ -1,10 +1,13 @@
-import ipaddress
+import ipaddress, logging
 from fastapi import APIRouter, Depends, HTTPException, WebSocket
 from utilities.dbConn import db_dep
 from utilities.utils import handle_route_exception
 from ..utilities.general import is_valid_hostname
+from ..utilities.plotter_runner import plotter_runner
 from sqlite3 import Connection, Cursor
 from pydantic import BaseModel, field_validator
+
+logger = logging.getLogger("uvicorn")
 
 router = APIRouter(
     prefix="/plotters",
@@ -119,7 +122,11 @@ async def update_plotter_host(
     host = host.model_dump(exclude_unset=True)
     set_statements = [f"{key} = :{key}" for key in host if key != "id"]
     set_clause = ", ".join(set_statements)
+    # Pause the plotter while updating the host
+    if plotter_id in plotter_runner.running_plotters:
+        plotter_runner.running_plotters[plotter_id].paused = True
     try:
+        # Check if the host already exists in the plotter
         cursor.execute(f'''
             SELECT * FROM widgets_PingPlotter_hosts
             WHERE 
@@ -131,16 +138,34 @@ async def update_plotter_host(
             raise HTTPException(
                 status_code=409, detail="Host already exists in plotter"
             )
+        # Update the host
         cursor.execute(f'''
             UPDATE widgets_PingPlotter_hosts SET
                 {set_clause}
             WHERE id = :id
             AND plotter_id = :plotter_id
         ''', {**host, "id": host_id, "plotter_id": plotter_id})
+
+        # remove the results for the host from the DB since they will be outdated
+        cursor.execute(
+            "DELETE FROM widgets_PingPlotter_results WHERE hosts_id = ?", (host_id,)
+        )        
+        
         conn.commit()
-        return host
     except Exception as e:
+        conn.rollback()
         handle_route_exception(e)
+    finally:
+        # Unpause the plotter
+        if plotter_id in plotter_runner.running_plotters:
+            try:
+                plotter_runner.running_plotters[plotter_id].get_hosts()
+            except Exception as e:
+                logger.error(f"Failed to update hosts for plotter {plotter_id}")
+                logger.error(e)
+
+            plotter_runner.running_plotters[plotter_id].paused = False
+    return host
 
 @router.delete("/{plotter_id}/hosts/{host_id}")
 async def delete_plotter_host(plotter_id: int, host_id: int, db: tuple[Cursor, Connection] = Depends(db_dep)):
