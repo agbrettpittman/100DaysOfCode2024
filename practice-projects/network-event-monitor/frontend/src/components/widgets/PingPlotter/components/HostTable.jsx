@@ -123,8 +123,19 @@ export default function HostTable({displayDetails = false}) {
                 setEditHostValue('');
             })
             .catch((error) => {
-                toast.error('Failed to update host');
                 console.error(error);
+                try {
+                    const errorResponse = error.response
+                    if (errorResponse.status === 409) {
+                        toast.error('Host already exists');
+                        return;
+                    } else {
+                        throw new Error('No error matched');
+                    }
+                } catch (error) {
+                    console.error(error);
+                    toast.error('Failed to update host');
+                }
             });
     }
 

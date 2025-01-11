@@ -121,6 +121,17 @@ async def update_plotter_host(
     set_clause = ", ".join(set_statements)
     try:
         cursor.execute(f'''
+            SELECT * FROM widgets_PingPlotter_hosts
+            WHERE 
+                plotter_id = :plotter_id
+                AND host = :host
+        ''', {"plotter_id": plotter_id, "host": host["host"]})
+        existing_host = cursor.fetchall()
+        if existing_host:
+            raise HTTPException(
+                status_code=409, detail="Host already exists in plotter"
+            )
+        cursor.execute(f'''
             UPDATE widgets_PingPlotter_hosts SET
                 {set_clause}
             WHERE id = :id
