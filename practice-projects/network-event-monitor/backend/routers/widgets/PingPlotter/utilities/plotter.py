@@ -17,6 +17,7 @@ class Plotter:
         self.ping_task = None
         self.resolver = aiodns.DNSResolver()
         self.host_resolutions: Dict[str, str] = {}
+        self.paused = False
 
         # Get hosts from database
         try:
@@ -60,6 +61,13 @@ class Plotter:
                 results["errored"].append(host)
 
         return results
+    
+    async def _resolve_host(self, host):
+        try:
+            result = await self.resolver.query(host, 'A')
+            return {"host": host, "resolved_ip": result[0].host, "status": "success"}
+        except Exception as e:
+            return {"host": host, "resolved_ip": None, "status": "error", "details": str(e)}
     
     async def summarize_results(self):
         summary = {}
@@ -129,20 +137,14 @@ class Plotter:
     async def _host_ping_loop(self):
         try:
             while True:
-                host_resolution_task = asyncio.create_task(self.resolve_hosts())
-                self.host_resolutions = await host_resolution_task
-                tasks = [self._ping_host(host) for host in self.hosts]
-                await asyncio.gather(*tasks)
+                if not self.paused:
+                    host_resolution_task = asyncio.create_task(self.resolve_hosts())
+                    self.host_resolutions = await host_resolution_task
+                    tasks = [self._ping_host(host) for host in self.hosts]
+                    await asyncio.gather(*tasks)
                 await asyncio.sleep(self.sleep_seconds)
         except asyncio.CancelledError:
             raise
-
-    async def _resolve_host(self, host):
-        try:
-            result = await self.resolver.query(host, 'A')
-            return {"host": host, "resolved_ip": result[0].host, "status": "success"}
-        except Exception as e:
-            return {"host": host, "resolved_ip": None, "status": "error", "details": str(e)}
         
     async def _ping_host(self, host):
         
