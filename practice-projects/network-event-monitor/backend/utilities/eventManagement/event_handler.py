@@ -22,7 +22,6 @@ class EventHandler:
     async def start_active_event_loop(self):
         logger.info(f"Starting active event loop")
         while True:
-            logger.info(f"Getting active events")
             self.active_events.query_db()
             await self.stop_inactive_events()
             await self.start_active_events()

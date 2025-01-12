@@ -41,23 +41,13 @@ export default function HostTable({displayDetails = false}) {
             const message = messages[messages.length - 1];
             if (!message) return prevValue;
             const Summary = message.data.summary;
-            console.log(Summary);
             for (let [hostId, summaryEntry] of Object.entries(Summary)) {
-                const Datetime = moment(summaryEntry.latestSendTime);
-                let parsedDateTime = Datetime.format('h:mm A')
-                if (!Datetime.isSame(moment(), 'day')) {
-                    parsedDateTime = Datetime.format('M/D/YY h:mm A')
-                }
+                const ParsedSummary = parseSummaryData(summaryEntry);
                 prevValue = {
                     ...prevValue,
                     [hostId]: {
                         ...prevValue[hostId],
-                        status: Boolean(summaryEntry.latestSuccess),
-                        latency: summaryEntry.latestLatency,
-                        lastUpdate: parsedDateTime,
-                        failures: summaryEntry.failures,
-                        successes: summaryEntry.successes,
-                        latencyAvg: summaryEntry.latencyAvg,
+                        ...ParsedSummary
                     }
                 };
             }
@@ -72,7 +62,11 @@ export default function HostTable({displayDetails = false}) {
             id: `/widgets/ping-plotter/plotters/${id}/hosts`
         }).then((response) => {
             const hostsData = response.data.reduce((hostObject, host) => {
-                hostObject[host.id] = host;
+                const ParsedSummary = parseSummaryData(host);
+                hostObject[host.id] = {
+                    ...host,
+                    ...ParsedSummary
+                }
                 return hostObject;
             }, {});
             setHosts(hostsData);
@@ -80,6 +74,22 @@ export default function HostTable({displayDetails = false}) {
             toast.error('Failed to get ping plotter hosts');
             console.error(error);
         })
+    }
+
+    function parseSummaryData(summaryData) {
+        const LatestSendTime = moment(summaryData.latestSendTime);
+        let formattedSendTime = LatestSendTime.format('h:mm A')
+        if (!LatestSendTime.isSame(moment(), 'day')) {
+            formattedSendTime = LatestSendTime.format('M/D/YY h:mm A')
+        }
+        return {
+            status: Boolean(summaryData.latestSuccess),
+            latency: summaryData.latestLatency,
+            lastUpdate: formattedSendTime,
+            failures: summaryData.failures,
+            successes: summaryData.successes,
+            latencyAvg: summaryData.latencyAvg,
+        };
     }
 
     function handleDeleteHost(hostId) {
@@ -144,6 +154,8 @@ export default function HostTable({displayDetails = false}) {
         if (!displayDetails) return 2;
         return 5;
     }
+
+    console.log("Hosts: ", hosts);
 
     return (
         <TableContainer component={Paper}>

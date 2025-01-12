@@ -1,6 +1,7 @@
 import aioping, asyncio, aiodns, logging, json
 from utilities.dbConn import get_db
 from utilities.eventSocketHandler import event_sockets
+from .queries import get_plotter_summary
 from typing import List, Dict
 from datetime import datetime
 
@@ -75,40 +76,7 @@ class Plotter:
         summary = {}
         with get_db() as (cursor, conn):
             try:
-                cursor.execute('''
-                    SELECT
-                        widgets_PingPlotter_hosts.id,
-                        COUNT(CASE WHEN widgets_PingPlotter_results.success = 0 THEN 1 END) AS failures,
-                        COUNT(CASE WHEN widgets_PingPlotter_results.success = 1 THEN 1 END) AS successes,
-                        ROUND(
-                            AVG(
-                            CASE WHEN widgets_PingPlotter_results.success = 1 THEN widgets_PingPlotter_results.latency END
-                            )
-                        , 2) AS latencyAvg,
-                        latest.sendTime AS latestSendTime,
-                        latest.latency AS latestLatency,
-                        latest.success AS latestSuccess
-                    FROM widgets_PingPlotter_hosts
-                    LEFT JOIN widgets_PingPlotter_results 
-                        ON widgets_PingPlotter_hosts.id = widgets_PingPlotter_results.hosts_id
-                    LEFT JOIN (
-                        SELECT
-                            hosts_id, 
-                            sendTime,
-                            latency,
-                            success
-                        FROM widgets_PingPlotter_results
-                        WHERE (hosts_id, id) IN (
-                            SELECT hosts_id, MAX(id) AS id
-                            FROM widgets_PingPlotter_results
-                            GROUP BY hosts_id
-                        )
-                    ) AS latest
-                        ON widgets_PingPlotter_hosts.id = latest.hosts_id
-                    WHERE widgets_PingPlotter_hosts.plotter_id = :plotter_id
-                    GROUP BY widgets_PingPlotter_hosts.id;
-                ''', {"plotter_id": self.id})
-                results = cursor.fetchall()
+                results = get_plotter_summary(self.id, cursor)
                 for single_summary in results:
                     summary_value = dict(single_summary)
                     summary_key = int(single_summary['id'])
