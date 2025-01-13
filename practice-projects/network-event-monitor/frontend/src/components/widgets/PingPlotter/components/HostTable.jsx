@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TextField, IconButton, Box } from '@mui/material';
 import requestor from '@utilities/requestor';
@@ -28,18 +28,20 @@ export default function HostTable({displayDetails = false}) {
     const [hosts, setHosts] = useState({});
     const [editHostId, setEditHostId] = useState(null);
     const [editHostValue, setEditHostValue] = useState('');
+    const [highlightedHosts, setHighlightedHosts] = useState({})
     const { id, HostsAdded, messages } = useContext(PingPlotterContext);
     const Theme = useTheme();
     const InitialDeleteIconColor = transparentize(0.5, Theme.palette.error.main);
+    const RowHighlightResetTimers = useRef({});
 
     useEffect(() => {
         fetchHosts();
     }, [id, HostsAdded]);
 
     useEffect(() => {
+        const message = messages[messages.length - 1];
+        if (!message) return
         setHosts(prevValue => {
-            const message = messages[messages.length - 1];
-            if (!message) return prevValue;
             const Summary = message.data.summary;
             for (let [hostId, summaryEntry] of Object.entries(Summary)) {
                 const ParsedSummary = parseSummaryData(summaryEntry);
@@ -47,7 +49,8 @@ export default function HostTable({displayDetails = false}) {
                     ...prevValue,
                     [hostId]: {
                         ...prevValue[hostId],
-                        ...ParsedSummary
+                        ...ParsedSummary,
+                        changed: prevValue[hostId]?.lastUpdate !== ParsedSummary.lastUpdate
                     }
                 };
             }
@@ -55,6 +58,27 @@ export default function HostTable({displayDetails = false}) {
             return prevValue;
         });
     }, [messages]);
+
+    useEffect(() => {
+        for (let hostId in hosts) {
+            if (!hosts[hostId].changed) continue;
+            setHighlightedHosts(prevValue => {
+                const newValue = { ...prevValue, [hostId]: hosts[hostId].status };
+                return newValue;
+            })
+            if (RowHighlightResetTimers.current[hostId]) {
+                clearTimeout(RowHighlightResetTimers.current[hostId])
+            }
+            RowHighlightResetTimers.current[hostId] = setTimeout(() => {
+                setHighlightedHosts(prevValue => {
+                    const newValue = { ...prevValue };
+                    delete newValue[hostId];
+                    return newValue;
+                })
+            }, 1000)
+        }
+    }, [hosts]);
+
 
     async function fetchHosts() {
         if (!id) return;
@@ -77,19 +101,29 @@ export default function HostTable({displayDetails = false}) {
     }
 
     function parseSummaryData(summaryData) {
-        const LatestSendTime = moment(summaryData.latestSendTime);
-        let formattedSendTime = LatestSendTime.format('h:mm A')
-        if (!LatestSendTime.isSame(moment(), 'day')) {
-            formattedSendTime = LatestSendTime.format('M/D/YY h:mm A')
-        }
         return {
             status: Boolean(summaryData.latestSuccess),
             latency: summaryData.latestLatency,
-            lastUpdate: formattedSendTime,
+            lastUpdate: summaryData.latestSendTime,
             failures: summaryData.failures,
             successes: summaryData.successes,
             latencyAvg: summaryData.latencyAvg,
         };
+    }
+
+    function parseLatestSendTime(latestSendTime) {
+        if (!latestSendTime) return '';
+        try {
+            const LatestSendTime = moment(latestSendTime);
+            let formattedSendTime = LatestSendTime.format('h:mm A')
+            if (!LatestSendTime.isSame(moment(), 'day')) {
+                formattedSendTime = LatestSendTime.format('M/D/YY h:mm A')
+            }
+            return `(${formattedSendTime})`
+        } catch (error) {
+            console.error(error);
+            return '';
+        }
     }
 
     function handleDeleteHost(hostId) {
@@ -155,7 +189,13 @@ export default function HostTable({displayDetails = false}) {
         return 5;
     }
 
-    console.log("Hosts: ", hosts);
+    function getHostRowColor(id) {
+        let newColor = Theme.palette.background.paper;
+        if (highlightedHosts[id] === true) newColor = Theme.palette.success.light
+        else if (highlightedHosts[id] === false) newColor = Theme.palette.error.light
+        // reduce the opacity of the color
+        return transparentize(0.9, newColor);
+    }
 
     return (
         <TableContainer component={Paper}>
@@ -175,7 +215,7 @@ export default function HostTable({displayDetails = false}) {
                 )}
                 <TableBody>
                     {Object.values(hosts).map((host) => (
-                        <TableRow key={host.id}>
+                        <TableRow key={host.id} style={{ backgroundColor: getHostRowColor(host.id) }}>
                             <TableCell width={'1em'}>
                                 {editHostId === host.id ? (
                                     <IconButton 
@@ -239,8 +279,8 @@ export default function HostTable({displayDetails = false}) {
                                     )}
                                     <TableCell width={'auto'}>
                                         <Box display='flex' alignItems='center' widgth='8em' justifyContent={'end'} gap={1}>
-                                            {host.latency}
-                                            {host.lastUpdate ? ` (${host.lastUpdate})` : ''}
+                                            {(host.latency) ? `${host.latency} ` : ''}
+                                            {parseLatestSendTime(host.lastUpdate)}
                                             <StatusIndicator status={host.status} />
                                         </Box>
                                     </TableCell>
