@@ -198,16 +198,32 @@ async def update_plotter_host(
 @router.delete("/{plotter_id}/hosts/{host_id}")
 async def delete_plotter_host(plotter_id: int, host_id: int, db: tuple[Cursor, Connection] = Depends(db_dep)):
     cursor, conn = db
+    if plotter_id in plotter_runner.running_plotters:
+        plotter_runner.running_plotters[plotter_id].paused = True
     try:
         cursor.execute(
             "DELETE FROM widgets_PingPlotter_hosts "
             "WHERE plotter_id = ? AND id = ?",
             (plotter_id, host_id)
         )
+        cursor.execute(
+            "DELETE FROM widgets_PingPlotter_results WHERE hosts_id = ?", (host_id,)
+        )    
         conn.commit()
         return {"message": "Host deleted successfully"}
     except Exception as e:
+        conn.rollback()
         handle_route_exception(e)
+    finally:
+        # Unpause the plotter
+        if plotter_id in plotter_runner.running_plotters:
+            try:
+                plotter_runner.running_plotters[plotter_id].get_hosts()
+            except Exception as e:
+                logger.error(f"Failed to update hosts for plotter {plotter_id}")
+                logger.error(e)
+
+            plotter_runner.running_plotters[plotter_id].paused = False
 
 
 
