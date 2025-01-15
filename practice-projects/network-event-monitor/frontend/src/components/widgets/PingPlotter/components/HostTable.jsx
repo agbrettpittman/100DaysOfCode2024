@@ -42,20 +42,21 @@ export default function HostTable({displayDetails = false}) {
         const message = messages[messages.length - 1];
         if (!message) return
         setHosts(prevValue => {
+            let newValue = { ...prevValue };
             const Summary = message.data.summary;
             for (let [hostId, summaryEntry] of Object.entries(Summary)) {
                 const ParsedSummary = parseSummaryData(summaryEntry);
-                prevValue = {
-                    ...prevValue,
+                newValue = {
+                    ...newValue,
                     [hostId]: {
-                        ...prevValue[hostId],
+                        ...newValue[hostId],
                         ...ParsedSummary,
-                        changed: prevValue[hostId]?.lastUpdate !== ParsedSummary.lastUpdate
+                        changed: newValue[hostId]?.lastUpdate !== ParsedSummary.lastUpdate
                     }
                 };
             }
            
-            return prevValue;
+            return newValue;
         });
     }, [messages]);
 
