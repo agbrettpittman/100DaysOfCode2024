@@ -1,5 +1,5 @@
 import requestor from '@utilities/requestor'
-import {useEffect, useState, useContext, createContext} from 'react'
+import {useEffect, useState, useContext, createContext, useMemo} from 'react'
 import { toast } from 'react-toastify'
 import { WidgetsContext } from '@components/EventWidgets'
 import { Delete, ChevronRight, ChevronLeft } from '@mui/icons-material'
@@ -30,6 +30,7 @@ export const PingPlotterContext = createContext({
     id: null,
     HostsAdded: [],
     setHostsAdded: () => {},
+    messages: [],
 })
 
 export default function PingPlotter({widgetId = null, messages = []}) {
@@ -44,6 +45,7 @@ export default function PingPlotter({widgetId = null, messages = []}) {
     const InitialDeleteIconColor = transparentize(0.5, Theme.palette.error.main)
     const RouterRoot = "/widgets/ping-plotter/plotters"
     const ColumnSpan = DisplayDetails ? 'span 2' : 'span 1'
+    const memoizedMessages = useMemo(() => messages, [JSON.stringify(messages)])
 
     useEffect(() => {
         if (!widgetId) return
@@ -65,9 +67,16 @@ export default function PingPlotter({widgetId = null, messages = []}) {
         }
     }
 
+    const PingPlotterContextValue = {
+        id: widgetId,
+        HostsAdded,
+        setHostsAdded,
+        messages: memoizedMessages,
+    }
+
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, gridColumn: ColumnSpan }}>
-            <PingPlotterContext.Provider value={{id: widgetId, HostsAdded, setHostsAdded, messages}}>
+            <PingPlotterContext.Provider value={PingPlotterContextValue}>
                 <Box sx={{ display: 'grid', gap: 1, gridTemplateColumns: 'auto 1fr auto', alignItems: 'center' }}>
                     <HoldIconButton 
                         color={InitialDeleteIconColor} 
