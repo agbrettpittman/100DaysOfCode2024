@@ -18,12 +18,19 @@ function AddHost(){
             toast.success('Host added successfully');
             await requestor.storage.remove(`/widgets/ping-plotter/plotters/${id}/hosts`)
             setHostsAdded(hostsAdded => [...hostsAdded, response.data]);
+            setHost('');
         })
         .catch(error => {
             console.error('Error adding host:', error);
             toast.error('Error adding host');
         });
     };
+
+    function handleKeyDown(e) {
+        if (e.key === 'Enter') {
+            handleAddHost();
+        }
+    }
 
     return (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -33,6 +40,7 @@ function AddHost(){
                 value={host}
                 onChange={(e) => setHost(e.target.value)}
                 size="small"
+                onKeyDown={handleKeyDown}
             />
             <IconButton 
                 color="primary" 
