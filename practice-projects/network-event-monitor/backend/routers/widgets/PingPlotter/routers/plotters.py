@@ -74,9 +74,15 @@ async def update_plotter(
             WHERE id = :id
         ''', {**plotter, "id": plotter_id})
         conn.commit()
+
         return plotter
     except Exception as e:
         handle_route_exception(e)
+    finally:
+        # Unpause the plotter
+        if plotter_id in plotter_runner.running_plotters:
+            await plotter_runner.running_plotters[plotter_id].change_name(plotter["name"])
+
 
 @router.delete("/{plotter_id}")
 async def delete_plotter(plotter_id: int, db: tuple[Cursor, Connection] = Depends(db_dep)):

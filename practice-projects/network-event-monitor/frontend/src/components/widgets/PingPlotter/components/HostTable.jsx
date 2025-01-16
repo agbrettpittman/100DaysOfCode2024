@@ -40,7 +40,8 @@ export default function HostTable({displayDetails = false}) {
 
     useEffect(() => {
         const message = messages[messages.length - 1];
-        if (!message) return
+        const data = message?.data;
+        if (!data || data.type !== 'summary') return;
         setHosts(prevValue => {
             let newValue = { ...prevValue };
             const Summary = message.data.summary;

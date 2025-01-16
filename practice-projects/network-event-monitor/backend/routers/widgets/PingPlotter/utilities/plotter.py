@@ -40,6 +40,21 @@ class Plotter:
             logger.info(f"Plotter {self.id} stopped")
             pass
 
+    async def broadcast_update(self, data):
+        await event_sockets.broadcast_update(
+            event_id=self.event_id, 
+            widget_name="PingPlotter", 
+            widget_id=self.id, 
+            data=data
+        )
+
+    async def change_name(self, name):
+        await self.broadcast_update({
+            "plotter_id": self.id,
+            "type": "plotter change",
+            "name": name
+        })
+
     def get_hosts(self):
         with get_db() as (cursor, conn):
             cursor.execute('''
@@ -151,19 +166,14 @@ class Plotter:
         })
         summary = await self.summarize_results()
 
-        data={
-            "plotter_id": self.id,
-            "host_id": host['id'],
-            "host": host['host'],
-            "summary": summary,
-        }
         try:
-            await event_sockets.broadcast_update(
-                event_id=self.event_id, 
-                widget_name="PingPlotter", 
-                widget_id=self.id, 
-                data=data
-            )
+            await self.broadcast_update({
+                "plotter_id": self.id,
+                "host_id": host['id'],
+                "host": host['host'],
+                "type": "summary",
+                "summary": summary,
+            })
         except Exception as e:
             logger.error(f"Failed to broadcast update for plotter {self.id}")
             logger.error(e)

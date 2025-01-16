@@ -1,5 +1,5 @@
 import requestor from '@utilities/requestor'
-import {useEffect, useState, useContext, createContext, useMemo} from 'react'
+import {useEffect, useState, useContext, createContext, useMemo, memo} from 'react'
 import { toast } from 'react-toastify'
 import { WidgetsContext } from '@components/EventWidgets'
 import { Edit, Delete, ChevronRight, ChevronLeft, Check, Close } from '@mui/icons-material'
@@ -54,6 +54,20 @@ export default function PingPlotter({widgetId = null, messages = []}) {
         setEditing(false)
         setEditingName("")
     }, [widgetId])
+
+    useEffect(() => {
+        const message = messages[messages.length - 1];
+        const data = message?.data;
+        if (!data || data.type !== 'plotter change') return;
+        if (data.name) {
+            setData((prevData) => {
+                return {
+                    ...prevData,
+                    name: data.name,
+                }
+            })
+        }
+    }, [memoizedMessages])
     
     async function getData() {
         if (!widgetId) return
@@ -89,10 +103,8 @@ export default function PingPlotter({widgetId = null, messages = []}) {
 
     async function saveEdit() {
         try {
-            console.log('Saving changes')
             await requestor.put(`${RouterRoot}/${widgetId}`, { name: EditingName })
             await requestor.storage.remove(`${RouterRoot}/${widgetId}`)
-            console.log('Saved changes')
             await getData()
             setEditing(false)
         } catch( error) {
