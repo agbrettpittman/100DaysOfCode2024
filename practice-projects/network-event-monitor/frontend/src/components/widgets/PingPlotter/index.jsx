@@ -2,8 +2,8 @@ import requestor from '@utilities/requestor'
 import {useEffect, useState, useContext, createContext, useMemo} from 'react'
 import { toast } from 'react-toastify'
 import { WidgetsContext } from '@components/EventWidgets'
-import { Delete, ChevronRight, ChevronLeft } from '@mui/icons-material'
-import { Box, IconButton, Typography, useTheme } from '@mui/material'
+import { Edit, Delete, ChevronRight, ChevronLeft, Check, Close } from '@mui/icons-material'
+import { Box, IconButton, Typography, useTheme, TextField } from '@mui/material'
 import HoldIconButton from '@components/ui/HoldIconButton'
 import { transparentize } from 'polished'
 import AddHost from './components/AddHost'
@@ -41,6 +41,8 @@ export default function PingPlotter({widgetId = null, messages = []}) {
     })
     const [HostsAdded, setHostsAdded] = useState([])
     const [DisplayDetails, setDisplayDetails] = useState(false)
+    const [Editing, setEditing] = useState(false)
+    const [EditingName, setEditingName] = useState("")
     const Theme = useTheme()
     const InitialDeleteIconColor = transparentize(0.5, Theme.palette.error.main)
     const RouterRoot = "/widgets/ping-plotter/plotters"
@@ -48,14 +50,25 @@ export default function PingPlotter({widgetId = null, messages = []}) {
     const memoizedMessages = useMemo(() => messages, [JSON.stringify(messages)])
 
     useEffect(() => {
+        getData()
+        setEditing(false)
+        setEditingName("")
+    }, [widgetId])
+    
+    async function getData() {
         if (!widgetId) return
-        requestor.get(`${RouterRoot}/${widgetId}`).then((response) => {
+        try {
+            const url = `${RouterRoot}/${widgetId}`
+            const response = await requestor.get(url, {
+                id: url
+            })
             setData(response.data)
-        }).catch((error) => {
+            setEditingName(response.data.name)
+        } catch (error) {
             toast.error('Failed to get ping plotter data')
             console.error(error)
-        })
-    }, [widgetId])
+        }
+    }
 
     async function handleDelete() {
         try {
@@ -63,6 +76,27 @@ export default function PingPlotter({widgetId = null, messages = []}) {
             deleteWidget(widgetId)
         } catch (error) {
             toast.error('Failed to delete ping plotter')
+            console.error(error)
+        }
+    }
+
+    function cancelEdit() {
+        setEditing(false)
+        setEditingName("")
+    }
+
+    
+
+    async function saveEdit() {
+        try {
+            console.log('Saving changes')
+            await requestor.put(`${RouterRoot}/${widgetId}`, { name: EditingName })
+            await requestor.storage.remove(`${RouterRoot}/${widgetId}`)
+            console.log('Saved changes')
+            await getData()
+            setEditing(false)
+        } catch( error) {
+            toast.error('Failed to save changes')
             console.error(error)
         }
     }
@@ -77,17 +111,42 @@ export default function PingPlotter({widgetId = null, messages = []}) {
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, gridColumn: ColumnSpan }}>
             <PingPlotterContext.Provider value={PingPlotterContextValue}>
-                <Box sx={{ display: 'grid', gap: 1, gridTemplateColumns: 'auto 1fr auto', alignItems: 'center' }}>
-                    <HoldIconButton 
-                        color={InitialDeleteIconColor} 
-                        hoverColor={Theme.palette.error.main} 
-                        onComplete={handleDelete}
-                    >
-                        <Delete />
-                    </HoldIconButton>
-                    <Typography variant="h5">
-                        {Data.name}
-                    </Typography>
+                <Box sx={{ display: 'grid', gap: 1, gridTemplateColumns: 'auto auto 1fr auto', alignItems: 'center' }}>
+                    
+                    {Editing ?
+                        <>
+                            <IconButton onClick={cancelEdit} color="error">
+                                <Close />
+                            </IconButton>
+                            <HoldIconButton 
+                                onClick={saveEdit} 
+                                color={Theme.palette.success.main}
+                                hoverColor={Theme.palette.success.dark}
+                            >
+                                <Check />
+                            </HoldIconButton>
+                            <TextField 
+                                value={EditingName}
+                                onChange={(e) => setEditingName(e.target.value)}
+                            />
+                        </>
+                    :
+                        <>
+                            <HoldIconButton 
+                                color={InitialDeleteIconColor} 
+                                hoverColor={Theme.palette.error.main} 
+                                onComplete={handleDelete}
+                            >
+                                <Delete />
+                            </HoldIconButton>
+                            <IconButton color="primary" onClick={() => setEditing(!Editing)}>
+                                <Edit />
+                            </IconButton>
+                            <Typography variant="h5">
+                                {Data.name}
+                            </Typography>
+                        </>
+                    }
                     <IconButton 
                         onClick={() => setDisplayDetails(!DisplayDetails)}
                         color="secondary"
