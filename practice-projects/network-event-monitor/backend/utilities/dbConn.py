@@ -11,9 +11,16 @@ if (not os.getenv("DB_PATH")):
     raise Exception("DB_PATH environment variable not set")
 DATABASE_URL = os.getenv("DB_PATH")
 
-def db_dep():
+def create_connection():
     conn = sqlite3.connect(DATABASE_URL, check_same_thread=False)
     conn.row_factory = sqlite3.Row
+    conn.execute('PRAGMA journal_mode=WAL')
+    conn.execute('PRAGMA foreign_keys=ON')
+    conn.commit()
+    return conn
+
+def db_dep():
+    conn = create_connection()
     cursor = conn.cursor()
     try:
         yield cursor, conn
@@ -22,8 +29,7 @@ def db_dep():
 
 @contextmanager
 def get_db():
-    conn = sqlite3.connect(DATABASE_URL, check_same_thread=False)
-    conn.row_factory = sqlite3.Row
+    conn = create_connection()
     cursor = conn.cursor()
     try:
         yield cursor, conn
@@ -32,8 +38,7 @@ def get_db():
 
 def initialize_database():
     with get_db() as (cursor, conn):
-        conn.execute('PRAGMA journal_mode=WAL')
-        conn.commit()
+        
         try:
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS events (

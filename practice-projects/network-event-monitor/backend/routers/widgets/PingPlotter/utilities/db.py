@@ -11,7 +11,7 @@ def initialize_database(cursor):
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             plotter_id INTEGER NOT NULL,
             host TEXT NOT NULL,
-            FOREIGN KEY (plotter_id) REFERENCES widgets_PingPlotter_plotter (id)
+            FOREIGN KEY (plotter_id) REFERENCES widgets_PingPlotter_plotter (id) ON DELETE CASCADE
         )
     ''')
     cursor.execute('''
@@ -21,6 +21,6 @@ def initialize_database(cursor):
             success INTEGER NOT NULL DEFAULT 0,
             latency REAL,
             hosts_id INTEGER NOT NULL,
-            FOREIGN KEY (hosts_id) REFERENCES widgets_PingPlotter_hosts (id)
+            FOREIGN KEY (hosts_id) REFERENCES widgets_PingPlotter_hosts (id) ON DELETE CASCADE
         )
     ''')
