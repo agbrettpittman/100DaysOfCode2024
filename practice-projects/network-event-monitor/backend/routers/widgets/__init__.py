@@ -10,15 +10,20 @@ router = APIRouter(
 
 logger = logging.getLogger("uvicorn")
 
-package_root = "routers.widgets"
-widget_routers_path = f"./{'/'.join(package_root.split('.'))}"
+base_package_root = "routers.widgets"
+skippable_dirs = ["__pycache__"]
 
-def include_widget_routers():
-    # Dynamically import and include routers from subdirectories
+def package_to_path(package: str):
+    return f"./{'/'.join(package.split('.'))}"
+
+def include_widget_subdir(widgets_subdir: str, sub_router: APIRouter):
+    package_root = f"{base_package_root}.{widgets_subdir}"
+    widget_routers_path = package_to_path(package_root)
     for widget_router_dir in os.listdir(widget_routers_path):
-        skippable_dirs = ["__pycache__"]
         if widget_router_dir in skippable_dirs: continue
         subdir_path = os.path.join(widget_routers_path, widget_router_dir)
+        # skip anything that is not a directory
+
         
         if not os.path.isdir(subdir_path): continue
         module_name = f"{package_root}.{widget_router_dir}"
@@ -42,7 +47,7 @@ def include_widget_routers():
         
         # Include the router from the module
         
-        router.include_router(module.router)
+        sub_router.include_router(module.router)
         logger.info(f"Loaded router for {module_title}")
 
         # Register the widget with the active event tracker
@@ -64,4 +69,18 @@ def include_widget_routers():
                     logger.error(e)
 
             logger.info(f"Initialized database for {module_title}")
+
+def include_widget_routers():
+    # Dynamically import and include routers from subdirectories
+    base_widgets_path = package_to_path(base_package_root)
+    for subdir in os.listdir(base_widgets_path):
+        if subdir in skippable_dirs: continue
+        if not os.path.isdir(os.path.join(base_widgets_path, subdir)): continue
+        sub_router = APIRouter(
+            prefix=f"/{subdir}",
+            responses={404: {"description": "Not found"}},
+        )
+        include_widget_subdir(subdir, sub_router)
+        router.include_router(sub_router)
+        
     
