@@ -118,3 +118,4 @@ dmypy.json
 
 # FastAPI
 *.db
+requirements.widgets.custom.txt
