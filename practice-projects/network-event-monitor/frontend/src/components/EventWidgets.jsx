@@ -1,11 +1,11 @@
 import {useEffect, useRef, useState, createContext} from 'react'
 import { toast } from 'react-toastify';
-import { Autocomplete, Box, Button, TextField, Grid } from '@mui/material';
+import { Autocomplete, Box, Button, TextField } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import requestor from '@utilities/requestor';
 import styled from 'styled-components';
 
-const WidgetModules = import.meta.glob('/src/components/widgets/*/index.jsx');
+const WidgetModules = import.meta.glob('/src/components/widgets/*/*/index.jsx');
 
 export const WidgetsContext = createContext({});
 

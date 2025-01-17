@@ -15,7 +15,7 @@ export async function Create(){
     const PostData = {
         name: 'New Ping Plotter',
     }
-    const URL = '/widgets/ping-plotter/plotters'
+    const URL = '/widgets/built-in/ping-plotter/plotters'
     try {
         const response = await requestor.post(URL, PostData)
         return response.data.id
@@ -45,7 +45,7 @@ export default function PingPlotter({widgetId = null, messages = []}) {
     const [EditingName, setEditingName] = useState("")
     const Theme = useTheme()
     const InitialDeleteIconColor = transparentize(0.5, Theme.palette.error.main)
-    const RouterRoot = "/widgets/ping-plotter/plotters"
+    const RouterRoot = "/widgets/built-in/ping-plotter/plotters"
     const ColumnSpan = DisplayDetails ? 'span 2' : 'span 1'
     const memoizedMessages = useMemo(() => messages, [JSON.stringify(messages)])
 

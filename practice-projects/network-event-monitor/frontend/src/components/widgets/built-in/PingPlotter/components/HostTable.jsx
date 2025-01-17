@@ -84,8 +84,8 @@ export default function HostTable({displayDetails = false}) {
 
     async function fetchHosts() {
         if (!id) return;
-        requestor.get(`/widgets/ping-plotter/plotters/${id}/hosts`, {
-            id: `/widgets/ping-plotter/plotters/${id}/hosts`
+        requestor.get(`/widgets/built-in/ping-plotter/plotters/${id}/hosts`, {
+            id: `/widgets/built-in/ping-plotter/plotters/${id}/hosts`
         }).then((response) => {
             const hostsData = response.data.reduce((hostObject, host) => {
                 const ParsedSummary = parseSummaryData(host);
@@ -129,7 +129,7 @@ export default function HostTable({displayDetails = false}) {
     }
 
     function handleDeleteHost(hostId) {
-        requestor.delete(`/widgets/ping-plotter/plotters/${id}/hosts/${hostId}`)
+        requestor.delete(`/widgets/built-in/ping-plotter/plotters/${id}/hosts/${hostId}`)
             .then(() => {
                 setHosts(prevHosts => {
                     const newHosts = { ...prevHosts };
@@ -155,7 +155,7 @@ export default function HostTable({displayDetails = false}) {
     }
 
     function handleSaveEdit(hostId) {
-        requestor.put(`/widgets/ping-plotter/plotters/${id}/hosts/${hostId}`, { host: editHostValue })
+        requestor.put(`/widgets/built-in/ping-plotter/plotters/${id}/hosts/${hostId}`, { host: editHostValue })
             .then(() => {
                 setHosts(prevHosts => ({
                     ...prevHosts,

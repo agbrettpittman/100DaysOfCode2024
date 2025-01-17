@@ -12,11 +12,11 @@ function AddHost(){
     const { id, setHostsAdded } = useContext(PingPlotterContext);
 
     async function handleAddHost() {
-        requestor.post(`/widgets/ping-plotter/plotters/${id}/hosts`, { host })
+        requestor.post(`/widgets/built-in/ping-plotter/plotters/${id}/hosts`, { host })
         .then(async response => {
             console.log('Host added:', response.data);
             toast.success('Host added successfully');
-            await requestor.storage.remove(`/widgets/ping-plotter/plotters/${id}/hosts`)
+            await requestor.storage.remove(`/widgets/built-in/ping-plotter/plotters/${id}/hosts`)
             setHostsAdded(hostsAdded => [...hostsAdded, response.data]);
             setHost('');
         })
