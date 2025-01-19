@@ -67,18 +67,19 @@ class RunningEvent:
         self.event_id = event_id
         self.widgets = {}
 
-    async def add_widget(self, widget_id, widget_name):
-        self.widgets[widget_id] = RunningEventWidget(
-            widget_id=widget_id,
+    async def add_widget(self, widget_mapping):
+        mapping_id = widget_mapping['id']
+        self.widgets[mapping_id] = RunningEventWidget(
+            widget_id=widget_mapping['widget_id'],
             event_id=self.event_id,
-            widget_name=widget_name
+            widget_name=widget_mapping['widgetName']
         )
-        await self.widgets[widget_id].start()
+        await self.widgets[mapping_id].start()
 
     async def load_widgets(self, widget_list):
-        for widget in widget_list:
-            if widget["widget_id"] not in self.widgets:
-                await self.add_widget(widget["widget_id"], widget["widgetName"])
+        for widget_mapping in widget_list:
+            if widget_mapping["id"] not in self.widgets:
+                await self.add_widget(widget_mapping)
 
     async def stop(self):
         failed_to_stop_widgets = 0
