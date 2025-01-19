@@ -25,6 +25,8 @@ class WidgetRegistry:
         self.registry[name] = RegisteredWidget(name, start_function, stop_function)
 
     def get_widget(self, name):
+        if name not in self.registry:
+            raise ValueError(f"Widget {name} not found in registry")
         return self.registry[name]
 
 widget_registry = WidgetRegistry()
