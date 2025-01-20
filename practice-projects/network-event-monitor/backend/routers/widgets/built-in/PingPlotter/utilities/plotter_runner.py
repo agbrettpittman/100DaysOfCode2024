@@ -16,8 +16,8 @@ class NewPlotterRunner:
         self._instance = self
         self.running_plotters = {}
 
-    def add_plotter(self, id:int = None, event_id:int = None):
-        self.running_plotters[id] = Plotter(id, event_id)
+    def add_plotter(self, id:int, event_id:int, mapping_id:int):
+        self.running_plotters[id] = Plotter(id, event_id, mapping_id)
 
     async def remove_plotter(self, id:int = None):
         await self.running_plotters[id].stop()

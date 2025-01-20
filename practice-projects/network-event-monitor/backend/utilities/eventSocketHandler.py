@@ -17,8 +17,9 @@ class new_handler:
         if not hasattr(self, 'socket_connections'):
             self.socket_connections = {}
 
-    async def broadcast_update(self, event_id: int, widget_name, widget_id, data: dict ):
+    async def broadcast_update(self, event_id: int, widget_name:str, widget_id:int, mapping_id:int, data: dict ):
         broadcast_data = {
+            "mapping_id": mapping_id,
             "widget_name": widget_name,
             "widget_id": widget_id,
             "data": data

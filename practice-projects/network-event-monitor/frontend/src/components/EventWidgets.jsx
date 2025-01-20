@@ -207,7 +207,7 @@ export default function EventWidgets() {
                         }   
                         
                         const { Component } = loadedWidget;
-                        const messages = SocketUpdates.filter((update) => update.widget_id === widget_id);
+                        const messages = SocketUpdates.filter((update) => update.mapping_id === widget.id);
                         return <Component widgetId={widget_id} messages={messages} />
                     })}
                 </WidgetGrid>

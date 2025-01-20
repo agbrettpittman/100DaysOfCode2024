@@ -11,9 +11,10 @@ class Plotter:
 
     sleep_seconds = 15
 
-    def __init__(self, id: int, event_id: int):
+    def __init__(self, id: int, event_id: int, mapping_id: int):
         self.id = id
         self.event_id = event_id
+        self.mapping_id = mapping_id
         self.hosts: List[Dict] = []
         self.ping_task = None
         self.resolver = aiodns.DNSResolver()
@@ -45,6 +46,7 @@ class Plotter:
             event_id=self.event_id, 
             widget_name="PingPlotter", 
             widget_id=self.id, 
+            mapping_id=self.mapping_id,
             data=data
         )
 

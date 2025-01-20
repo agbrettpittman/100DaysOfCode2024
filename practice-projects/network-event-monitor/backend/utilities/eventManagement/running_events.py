@@ -6,7 +6,8 @@ logger = logging.getLogger("uvicorn")
 
 class RunningEventWidget:
 
-    def __init__(self, widget_id, event_id, widget_name=""):
+    def __init__(self, mapping_id:int, widget_id:int, event_id:int, widget_name=""):
+        self.mapping_id = mapping_id
         self.id = widget_id
         self.event_id = event_id
         self.widget_name = widget_name
@@ -23,7 +24,7 @@ class RunningEventWidget:
         while start_attempts < 5 and not start_success:
             try:
                 widget_registry_entry = widget_registry.get_widget(self.widget_name)
-                await widget_registry_entry.start(self.id, self.event_id)
+                await widget_registry_entry.start(self.id, self.event_id, self.mapping_id)
                 self.update_status("active")
                 start_success = True
                 logger.info(f"Started {self.widget_name} {self.id}")
@@ -39,7 +40,7 @@ class RunningEventWidget:
         try:
             if self.status == "halted": return
             widget_registry_entry = widget_registry.get_widget(self.widget_name)
-            await widget_registry_entry.stop(self.id, self.event_id)
+            await widget_registry_entry.stop(self.id, self.event_id, self.mapping_id)
             self.update_status("halted")
         except Exception as e:
             self.add_failure("stop", 1, str(e))
@@ -72,7 +73,8 @@ class RunningEvent:
         self.widgets[mapping_id] = RunningEventWidget(
             widget_id=widget_mapping['widget_id'],
             event_id=self.event_id,
-            widget_name=widget_mapping['widgetName']
+            widget_name=widget_mapping['widgetName'],
+            mapping_id=mapping_id
         )
         await self.widgets[mapping_id].start()
 
