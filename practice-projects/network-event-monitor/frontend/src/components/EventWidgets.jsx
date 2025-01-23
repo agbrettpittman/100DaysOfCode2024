@@ -180,7 +180,7 @@ export default function EventWidgets({canEdit}) {
         <div>
             {canEdit && (
                 <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, mb: 8 }}>
-                        <Autocomplete
+                    <Autocomplete
                         disablePortal
                         options={DropdownOptions}
                         sx={{ width: 300 }}
@@ -189,7 +189,7 @@ export default function EventWidgets({canEdit}) {
                             setNewWidgetSelection(newValue);
                         }}
                         renderInput={(params) => <TextField {...params} label="Widgets" />}
-                        />
+                    />
                     <Button
                     variant="contained"
                     onClick={createNewWidget}
