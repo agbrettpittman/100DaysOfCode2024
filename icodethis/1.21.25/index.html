@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1.21.25</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f5f7f9;
+            font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+            margin: 0;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        h2, p {
+            margin: 0;
+        }
+
+        img {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            grid-area: pfp;
+        }
+
+        form {
+            display: grid;
+            grid-template-areas: 
+                "label label label"
+                "input input showHide"
+                "checkbox button na";
+            ;
+            justify-content: space-between;
+        }
+
+        form p {
+            grid-area: label;
+            font-size: 0.6rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        form input[type="password"] {
+            padding: 0.5rem;
+            border: 1px solid #adadad;
+            border-radius: 5px;
+            grid-area: input;
+            margin-bottom: 1rem;
+        }
+
+        form button {
+            background-color: #112b50;
+            color: #d2e5ef;
+            border: 0px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 3px #d2e5ef;
+            padding: 0.5rem 0.5rem;
+            width: fit-content;
+        }
+
+        a {
+            display: block;
+            margin-top: 2rem;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #112b50;
+        }
+
+        .wrapper {
+            max-width: 50rem;
+            background-color: white;
+            padding: 2.5rem;
+            border-radius: 10px;
+            box-shadow: 0px 0px 37px 14px #0000000a;
+        }
+
+        .profile {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            grid-template-areas:
+                "pfp type"
+                "pfp name";
+            margin: 2rem 0px;
+            column-gap: 1rem;
+            align-items: center;
+        }
+
+        .accountType {
+            font-size: 0.75rem;
+            align-self: end;
+        }
+        .accountName {
+            font-weight: bold;
+            align-self: start;
+        }
+
+        .checkWrapper {
+            display: flex;
+            align-items: center;
+        }
+        
+        .fa-eye-slash {
+            grid-area: showHide;
+            margin-top: 0.5rem;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+        integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+    <div class="wrapper">
+        <h2>Enter your password</h2>
+        <div class="profile">
+            <img src="pfp.jpg" alt="">
+            <p class="accountType">Business Account</p>
+            <p class="accountName">Brett Pittman</p>
+        </div>
+        <form action="">
+            <p>Password</p>
+            <input type="password" name="password" id="password" placeholder="Enter password">
+            <i class="fa-regular fa-eye-slash"></i>
+            <div class="checkWrapper">
+                <input type="checkbox" name="staySignedIn" id="staySignedIn">
+                <label for="staySignedIn">Stay signed in</label>
+            </div>
+            <button type="submit">Continue</button>
+        </form>
+        <a href="">Reset password?</a>
+    </div>
+</body>
+</html>
