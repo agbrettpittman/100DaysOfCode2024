@@ -21,6 +21,7 @@ export default function EventPage() {
     }
     const InitialDeleteIconColor = transparentize(0.5, Theme.palette.error.main)
     const InitialEditIconColor = transparentize(0.5, Theme.palette.primary.main)
+    const CanEditWidgets = Event.end.isAfter(new Date())
 
     function handleEditClose() {
         setEditing(false)
@@ -71,7 +72,7 @@ export default function EventPage() {
             <Typography variant="body1" data-testid="description" sx={(Event.description) ? undefined : NoValueSX}>
                 {Event.description || "No Description"}
             </Typography>
-            <EventWidgets />
+            <EventWidgets canEdit={CanEditWidgets} />
         </Box>
     )
 }

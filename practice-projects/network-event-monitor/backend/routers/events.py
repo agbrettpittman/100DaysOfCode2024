@@ -136,6 +136,15 @@ async def add_widget_to_event(id: int, widget: WidgetModel, db: tuple[Cursor, Co
     cursor, conn = db
     widget = widget.model_dump()
     try:
+
+        cursor.execute("SELECT * FROM events WHERE id = :id", {"id": id})
+        event = cursor.fetchone()
+        event = dict(event)
+
+        # if the end of the event has passed, don't allow new widgets to be added
+        if datetime.now() > datetime.strptime(event["end"], "%Y-%m-%d %H:%M:%S"):
+            raise HTTPException(status_code=409, detail="Event has already ended")
+
         event_mapping_query = '''
             INSERT INTO widgetMappings
             (widgetName, event_id, widget_id)

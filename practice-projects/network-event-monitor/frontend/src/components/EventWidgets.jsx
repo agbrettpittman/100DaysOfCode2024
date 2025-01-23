@@ -24,7 +24,7 @@ const WidgetGrid = styled(Box)`
     }
 `;
 
-export default function EventWidgets() {
+export default function EventWidgets({canEdit}) {
 
     const [widgets, setWidgets] = useState([]);
     const [AvailableWidgets, setAvailableWidgets] = useState({});
@@ -178,25 +178,27 @@ export default function EventWidgets() {
 
     return (
         <div>
-            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, mb: 8 }}>
-                <Autocomplete
-                    disablePortal
-                    options={DropdownOptions}
-                    sx={{ width: 300 }}
-                    value={NewWidgetSelection}
-                    onChange={(event, newValue) => {
-                        setNewWidgetSelection(newValue);
-                    }}
-                    renderInput={(params) => <TextField {...params} label="Widgets" />}
-                />
-                <Button
+            {canEdit && (
+                <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, mb: 8 }}>
+                        <Autocomplete
+                        disablePortal
+                        options={DropdownOptions}
+                        sx={{ width: 300 }}
+                        value={NewWidgetSelection}
+                        onChange={(event, newValue) => {
+                            setNewWidgetSelection(newValue);
+                        }}
+                        renderInput={(params) => <TextField {...params} label="Widgets" />}
+                        />
+                    <Button
                     variant="contained"
                     onClick={createNewWidget}
                     sx={{ width: 'fit-content' }}
-                >
-                    Add Widget
-                </Button>
-            </Box>
+                    >
+                        Add Widget
+                    </Button>
+                </Box>
+            )}
             <WidgetsContext.Provider value={{ deleteWidget }}>
                 <WidgetGrid>
                     {widgets.map((widget) => {
