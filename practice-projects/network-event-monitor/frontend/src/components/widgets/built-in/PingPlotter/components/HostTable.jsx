@@ -24,12 +24,12 @@ const StatusIndicator = styled.div`
     background-color: ${getStatusColor};
 `;
 
-export default function HostTable({displayDetails = false}) {
+export default function HostTable() {
     const [hosts, setHosts] = useState({});
     const [editHostId, setEditHostId] = useState(null);
     const [editHostValue, setEditHostValue] = useState('');
     const [highlightedHosts, setHighlightedHosts] = useState({})
-    const { id, HostsAdded, messages } = useContext(PingPlotterContext);
+    const { RouterRoot, id, HostsAdded, messages, Expanded } = useContext(PingPlotterContext);
     const Theme = useTheme();
     const InitialDeleteIconColor = transparentize(0.5, Theme.palette.error.main);
     const RowHighlightResetTimers = useRef({});
@@ -84,8 +84,8 @@ export default function HostTable({displayDetails = false}) {
 
     async function fetchHosts() {
         if (!id) return;
-        requestor.get(`/widgets/built-in/ping-plotter/plotters/${id}/hosts`, {
-            id: `/widgets/built-in/ping-plotter/plotters/${id}/hosts`
+        requestor.get(`${RouterRoot}/hosts`, {
+            id: `${RouterRoot}/hosts`
         }).then((response) => {
             const hostsData = response.data.reduce((hostObject, host) => {
                 const ParsedSummary = parseSummaryData(host);
@@ -129,7 +129,7 @@ export default function HostTable({displayDetails = false}) {
     }
 
     function handleDeleteHost(hostId) {
-        requestor.delete(`/widgets/built-in/ping-plotter/plotters/${id}/hosts/${hostId}`)
+        requestor.delete(`${RouterRoot}/hosts/${hostId}`)
             .then(() => {
                 setHosts(prevHosts => {
                     const newHosts = { ...prevHosts };
@@ -155,7 +155,7 @@ export default function HostTable({displayDetails = false}) {
     }
 
     function handleSaveEdit(hostId) {
-        requestor.put(`/widgets/built-in/ping-plotter/plotters/${id}/hosts/${hostId}`, { host: editHostValue })
+        requestor.put(`${RouterRoot}/hosts/${hostId}`, { host: editHostValue })
             .then(() => {
                 setHosts(prevHosts => ({
                     ...prevHosts,
@@ -187,7 +187,7 @@ export default function HostTable({displayDetails = false}) {
 
     function getHostColumnSpan(id) {
         if (editHostId !== id) return 1;
-        if (!displayDetails) return 2;
+        if (!Expanded) return 2;
         return 5;
     }
 
@@ -202,7 +202,7 @@ export default function HostTable({displayDetails = false}) {
     return (
         <TableContainer component={Paper}>
             <Table>
-                {displayDetails && (
+                {Expanded && (
                     <TableHead>
                         <TableRow>
                             <TableCell></TableCell>
@@ -266,7 +266,7 @@ export default function HostTable({displayDetails = false}) {
                             </TableCell>
                             {editHostId !== host.id && (
                                 <>
-                                    {displayDetails && (
+                                    {Expanded && (
                                         <>
                                             <TableCell align="center">
                                                 {host.latencyAvg}
