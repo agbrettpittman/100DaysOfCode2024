@@ -1,6 +1,6 @@
 import logging, time, asyncio
 from .active_events import ActiveEvents
-from .running_events import RunningEvent
+from .running_event import RunningEvent
 
 logger = logging.getLogger("uvicorn")
 
