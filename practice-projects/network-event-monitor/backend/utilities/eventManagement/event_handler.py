@@ -22,9 +22,7 @@ class EventHandler:
     async def start_active_event_loop(self):
         logger.info(f"Starting active event loop")
         while True:
-            self.active_events.query_db()
-            await self.stop_inactive_events()
-            await self.start_active_events()
+            await self.update_active_events()
             await asyncio.sleep(61 - time.time() % 60)  # Sleep until the next minute
 
     async def activate(self):
@@ -34,6 +32,11 @@ class EventHandler:
         current_loop = asyncio.get_event_loop()
         logger.info(f"Activating Active Event Tracker in event loop {id(current_loop)}")
         asyncio.create_task(self.start_active_event_loop())
+
+    async def update_active_events(self):
+        self.active_events.query_db()
+        await self.stop_inactive_events()
+        await self.start_active_events()
 
     async def stop_inactive_events(self):
         events_to_delete = []
@@ -51,7 +54,6 @@ class EventHandler:
 
         for event_id in events_to_delete:
             del self.running_events[event_id]
-
 
     async def start_active_events(self):
         widgets_by_event = self.active_events.widgets_by_event()

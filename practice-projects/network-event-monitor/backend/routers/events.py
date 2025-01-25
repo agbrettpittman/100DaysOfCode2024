@@ -2,17 +2,20 @@ import inspect, random, string
 from fastapi import APIRouter, Depends, HTTPException, WebSocket
 from pydantic import BaseModel, field_validator
 from sqlite3 import Connection, Cursor
+from datetime import datetime, timedelta
+from logging import getLogger
 from utilities.dbConn import db_dep
 from utilities.utils import handle_route_exception
 from utilities.eventSocketHandler import event_sockets
 from utilities.eventManagement.event_handler import event_handler
-from datetime import datetime, timedelta
 
 router = APIRouter(
     prefix="/events",
     tags=["Events"],
     responses={404: {"description": "Not found"}},
 )
+
+logger = getLogger("uvicorn")
 
 class EventModel(BaseModel):
     referenceID: str | None = None
@@ -80,6 +83,13 @@ async def create_event(event: EventModel, db: tuple[Cursor, Connection] = Depend
                 raise HTTPException(status_code=500, detail="Failed to create event")
         except Exception as e:
             handle_route_exception(e)
+    finally:
+        conn.close()
+        try:
+            await event_handler.update_active_events()
+        except Exception as e:
+            handle_route_exception(e)
+    
 
 @router.websocket("/ws/{event_id}")
 async def get_plotter_results(websocket: WebSocket, event_id: int):
