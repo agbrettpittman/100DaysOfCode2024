@@ -78,6 +78,12 @@ class RunningEvent:
         )
         await self.widgets[mapping_id].start()
 
+    async def remove_widget(self, mapping_id):
+        if mapping_id in self.widgets:
+            print(f"Stopping widget {mapping_id}")
+            await self.widgets[mapping_id].stop()
+            del self.widgets[mapping_id]
+
     async def load_widgets(self, widget_list):
         for widget_mapping in widget_list:
             if widget_mapping["id"] not in self.widgets:

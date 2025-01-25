@@ -12,8 +12,8 @@ import moment from 'moment';
 
 function getStatusColor({ status, theme }) {
     let color = theme.palette.grey.A400
-    if (status === true) color = theme.palette.success.light
-    if (status === false) color = theme.palette.error.light
+    if (status === "true") color = theme.palette.success.light
+    if (status === "false") color = theme.palette.error.light
     return color
 }
 
@@ -283,7 +283,7 @@ export default function HostTable() {
                                         <Box display='flex' alignItems='center' widgth='8em' justifyContent={'end'} gap={1}>
                                             {(host.latency) ? `${host.latency} ` : ''}
                                             {parseLatestSendTime(host.lastUpdate)}
-                                            <StatusIndicator status={host.status} />
+                                            <StatusIndicator status={host.status.toString()} />
                                         </Box>
                                     </TableCell>
                                 </>

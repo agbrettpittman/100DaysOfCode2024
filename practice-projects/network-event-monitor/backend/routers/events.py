@@ -5,6 +5,7 @@ from sqlite3 import Connection, Cursor
 from utilities.dbConn import db_dep
 from utilities.utils import handle_route_exception
 from utilities.eventSocketHandler import event_sockets
+from utilities.eventManagement.event_handler import event_handler
 from datetime import datetime, timedelta
 
 router = APIRouter(
@@ -161,21 +162,26 @@ async def add_widget_to_event(id: int, widget: WidgetModel, db: tuple[Cursor, Co
     except Exception as e:
         handle_route_exception(e)
 
-@router.delete("/{id}/widgets/{widget_id}")
-async def remove_widget_from_event(id: int, widget_id: int, db: tuple[Cursor, Connection] = Depends(db_dep)):
+@router.delete("/{id}/widgets/{widgetmapping_id}")
+async def remove_widget_from_event(id: int, widgetmapping_id: int, db: tuple[Cursor, Connection] = Depends(db_dep)):
     cursor, conn = db
+    params = {"event_id": id, "widgetmapping_id": widgetmapping_id}
     original_widget_query = '''
         SELECT * FROM widgetMappings
-        WHERE event_id = :event_id AND widget_id = :widget_id
+        WHERE event_id = :event_id AND id = :widgetmapping_id
     '''
-    cursor.execute(original_widget_query, {"event_id": id, "widget_id": widget_id})
+    cursor.execute(original_widget_query, params)
     widget = cursor.fetchone()
     if not widget:
         raise HTTPException(status_code=404, detail="Widget not found in event")
+    
+    if id in event_handler.running_events:
+        await event_handler.running_events[id].remove_widget(widgetmapping_id)
+
     cursor.execute('''
         DELETE FROM widgetMappings
-        WHERE event_id = :event_id AND widget_id = :widget_id
-    ''', {"event_id": id, "widget_id": widget_id})
+        WHERE event_id = :event_id AND id = :widgetmapping_id
+    ''', params)
     
     conn.commit()
     return {"message": "Widget removed from event successfully"}

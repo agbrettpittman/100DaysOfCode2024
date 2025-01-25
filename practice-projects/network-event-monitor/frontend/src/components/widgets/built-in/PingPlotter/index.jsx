@@ -1,11 +1,7 @@
 import requestor from '@utilities/requestor'
-import {useEffect, useState, useContext, createContext, useMemo, memo} from 'react'
+import { useEffect, useState, createContext, useMemo } from 'react'
 import { toast } from 'react-toastify'
-import { WidgetsContext } from '@components/EventWidgets'
-import { Edit, Delete, ChevronRight, ChevronLeft, Check, Close } from '@mui/icons-material'
-import { Box, IconButton, Typography, useTheme, TextField } from '@mui/material'
-import HoldIconButton from '@components/ui/HoldIconButton'
-import { transparentize } from 'polished'
+import { Box } from '@mui/material'
 import AddHost from './components/AddHost'
 import HostTable from './components/HostTable'
 import TitleBar from './components/TitleBar'
@@ -37,13 +33,11 @@ export const PingPlotterContext = createContext({
     setExpanded: () => {},
 })
 
-export default function PingPlotter({widgetId = null, messages = []}) {
+export default function PingPlotter({widgetId = null, messages = [], handleDelete = () => {}}) {
     
     const [Name, setName] = useState("")
     const [HostsAdded, setHostsAdded] = useState([])
     const [Expanded, setExpanded] = useState(false)    
-    const { deleteWidget } = useContext(WidgetsContext)
-    
     const RouterRoot = `/widgets/built-in/ping-plotter/plotters/${widgetId}`
     const ColumnSpan = Expanded ? 'span 2' : 'span 1'
     const memoizedMessages = useMemo(() => messages, [JSON.stringify(messages)])
@@ -73,10 +67,10 @@ export default function PingPlotter({widgetId = null, messages = []}) {
         }
     }
 
-    async function handleDelete() {
+    async function deleteSelf() {
         try {
             await requestor.delete(RouterRoot)
-            deleteWidget(widgetId)
+            handleDelete()
         } catch (error) {
             toast.error('Failed to delete ping plotter')
             console.error(error)
@@ -96,7 +90,7 @@ export default function PingPlotter({widgetId = null, messages = []}) {
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, gridColumn: ColumnSpan }}>
             <PingPlotterContext.Provider value={PingPlotterContextValue}>
-                <TitleBar name={Name} handleDelete={handleDelete} onSave={getData} />
+                <TitleBar name={Name} handleDelete={deleteSelf} onSave={getData} />
                 <AddHost />
                 <HostTable />
             </PingPlotterContext.Provider>

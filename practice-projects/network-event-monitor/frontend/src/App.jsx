@@ -26,7 +26,6 @@ export default function App() {
         requestor.get('/events', {
             id: '/events'
         }).then((response) => {
-            console.log(response.data)
             const NewEvents = response.data.map((event) => {
                 return {
                     ...event,

@@ -4,23 +4,23 @@ import { Autocomplete, Box, Button, TextField } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import requestor from '@utilities/requestor';
 import styled from 'styled-components';
+import { ErrorBoundary } from 'react-error-boundary';
+import WidgetError from './ui/WidgetError';
 
 const WidgetModules = import.meta.glob('/src/components/widgets/*/*/index.jsx');
-
-export const WidgetsContext = createContext({});
 
 const WidgetGrid = styled(Box)`
     display: grid;
     gap: 16px;
     margin-top: 16px;
     grid-template-columns: repeat(auto-fill, 500px);
-    grid-template-rows: repeat(auto-fill, 500px);
 
     & > * {
         border: 1px solid;
         border-color: rgba(0, 0, 0, 0.12);
         border-radius: 4px;
         padding: 8px;
+        max-height: 500px;
     }
 `;
 
@@ -101,7 +101,6 @@ export default function EventWidgets({canEdit}) {
         requestor.get(`/events/${id}/widgets`,{ 
             id: `/events/${id}/widgets`
         }).then((response) => {
-            console.log(response.data)
             setWidgets(response.data);
         }).catch((error) => {
             toast.error('Failed to get widgets for event')
@@ -164,8 +163,9 @@ export default function EventWidgets({canEdit}) {
         }
     }
 
-    async function deleteWidget(widgetId) {
-        requestor.delete(`/events/${id}/widgets/${widgetId}`).then(async () => {
+    async function deleteWidget(widgetMappingId) {
+        const DeleteURL = `/events/${id}/widgets/${widgetMappingId}`
+        requestor.delete(DeleteURL).then(async () => {
             toast.success('Deleted widget')
             // invalidate the cache
             await requestor.storage.remove(`/events/${id}/widgets`)
@@ -199,21 +199,37 @@ export default function EventWidgets({canEdit}) {
                     </Button>
                 </Box>
             )}
-            <WidgetsContext.Provider value={{ deleteWidget }}>
-                <WidgetGrid>
-                    {widgets.map((widget) => {
-                        const { widget_id, widgetName } = widget;
-                        const loadedWidget = AvailableWidgets[widgetName];
-                        if (!loadedWidget || !loadedWidget.Component) {
-                            return <p key={widget.id}>Loading {widgetName}...</p>;
-                        }   
-                        
-                        const { Component } = loadedWidget;
-                        const messages = SocketUpdates.filter((update) => update.mapping_id === widget.id);
-                        return <Component widgetId={widget_id} messages={messages} />
-                    })}
-                </WidgetGrid>
-            </WidgetsContext.Provider>
+            <WidgetGrid>
+                {widgets.map((widget) => {
+                    const { widget_id, widgetName } = widget;
+                    const loadedWidget = AvailableWidgets[widgetName];
+                    if (!loadedWidget || !loadedWidget.Component) {
+                        return <p key={widget.id}>Loading {widgetName}...</p>;
+                    }   
+                    
+                    const { Component } = loadedWidget;
+                    const messages = SocketUpdates.filter(
+                        (update) => update.mapping_id === widget.id
+                    );
+                    return (
+                        <ErrorBoundary 
+                            key={widget.id} 
+                            FallbackComponent={
+                                (error) => (
+                                    <WidgetError 
+                                        error={error} name={widgetName} id={widget_id}
+                                    />
+                                )
+                            }
+                        >
+                            <Component
+                                widgetId={widget_id} messages={messages} 
+                                handleDelete={() => deleteWidget(widget.id)}
+                            />
+                        </ErrorBoundary>
+                    );
+                })}
+            </WidgetGrid>
         </div>
     )
 }
