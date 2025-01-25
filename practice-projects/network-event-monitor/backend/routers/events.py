@@ -157,6 +157,14 @@ async def add_widget_to_event(id: int, widget: WidgetModel, db: tuple[Cursor, Co
             "widgetName": widget["widgetName"]
         }
         cursor.execute(event_mapping_query, event_mapping_dict)
+
+        if id in event_handler.running_events:
+            widget_to_add = {
+                "id": cursor.lastrowid,
+                **event_mapping_dict
+            }
+            await event_handler.running_events[id].add_widget(widget_to_add)
+
         conn.commit()
         return widget
     except Exception as e:
