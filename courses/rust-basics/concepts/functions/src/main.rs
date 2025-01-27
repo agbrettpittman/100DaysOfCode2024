@@ -21,6 +21,10 @@ fn main() {
     let bmi = calculate_bmi(weight_kg, height_m);
 
     println!("Your BMI is: {:.2}", bmi);
+
+    let cat = generate_cat("Whiskers");
+
+    println!("{} is a {} {} that is {} years old", cat.0, cat.1, cat.2, cat.3);
 }
 
 fn hello_world() {
@@ -41,4 +45,11 @@ fn add(a: i32, b: i32) -> i32 {
 
 fn calculate_bmi(weight_kg: f64, height_m: f64) -> f64{
     weight_kg / (height_m * height_m)
+}
+
+fn generate_cat(name: &str) -> (&str, &str, &str, u32) {
+    let colors = ["black", "white", "orange", "grey"];
+    let breeds = ["Siamese", "Persian", "Maine Coon", "Ragdoll"];
+    let age:u32 = 5;
+    (name,colors[0],breeds[2],age)
 }
